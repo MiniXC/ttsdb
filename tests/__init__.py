@@ -6,6 +6,8 @@ import importlib.resources
 from ttsdb.benchmarks.benchmark import BenchmarkCategory, BenchmarkDimension
 from ttsdb.benchmarks.general.mfcc import MFCCBenchmark
 from ttsdb.benchmarks.general.hubert import HubertBenchmark
+from ttsdb.benchmarks.intelligibility.w2v2_wer import Wav2Vec2WERBenchmark
+from ttsdb.benchmarks.intelligibility.whisper_wer import WhisperWERBenchmark
 from ttsdb.util.dataset import TarDataset
 
 with importlib.resources.path("ttsdb", "data") as data_path:
@@ -29,13 +31,31 @@ with importlib.resources.path("ttsdb", "data") as data_path:
 #     assert result[0] == 99.87295897554043
 
 
-def test_hubert_compute_distance():
-    benchmark = HubertBenchmark()
+# def test_hubert_compute_distance():
+#     benchmark = HubertBenchmark()
+#     result = benchmark.compute_distance(test_tar_dataset, dev_tar_dataset)
+#     assert result == 2.141043000170157
+
+
+# def test_hubert_compute_score():
+#     benchmark = HubertBenchmark()
+#     result = benchmark.compute_score(dev_tar_dataset)
+#     print(result)
+
+
+# def test_intelligibility_w2v2():
+#     benchmark = Wav2Vec2WERBenchmark()
+#     result = benchmark.compute_distance(test_tar_dataset, dev_tar_dataset)
+#     assert result == 2.8337254630609507
+
+
+# def test_intelligibility_w2v2_score():
+#     benchmark = Wav2Vec2WERBenchmark()
+#     result = benchmark.compute_score(dev_tar_dataset)
+#     assert result[0] == 87.05972559913435
+
+
+def test_intelligibility_whisper():
+    benchmark = WhisperWERBenchmark()
     result = benchmark.compute_distance(test_tar_dataset, dev_tar_dataset)
-    assert result == 2.141043000170157
-
-
-def test_hubert_compute_score():
-    benchmark = HubertBenchmark()
-    result = benchmark.compute_score(dev_tar_dataset)
-    print(result)
+    assert result == 2.80178514522438

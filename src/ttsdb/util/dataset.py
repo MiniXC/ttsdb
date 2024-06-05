@@ -13,7 +13,7 @@ from typing import Tuple
 import numpy as np
 import librosa
 
-from ttsdb.util.cache import cache, check_cache, load_cache
+from ttsdb.util.cache import cache, check_cache, load_cache, hash_md5
 
 
 class Dataset(ABC):
@@ -21,7 +21,7 @@ class Dataset(ABC):
     Abstract class for a dataset.
     """
 
-    def __init__(self, sample_rate: int = 22050):
+    def __init__(self, name, sample_rate: int = 22050):
         self.sample_rate = sample_rate
         self.wavs = []
         self.texts = []
@@ -30,6 +30,7 @@ class Dataset(ABC):
             "n": None,
             "seed": None,
         }
+        self.name = name
         self.indices = None
 
     @abstractmethod
@@ -80,7 +81,7 @@ class DirectoryDataset(Dataset):
     """
 
     def __init__(self, root_dir: str = None, sample_rate: int = 22050):
-        super().__init__(sample_rate)
+        super().__init__(Path(root_dir).name, sample_rate)
         if root_dir is None:
             raise ValueError("root_dir must be provided.")
         self.root_dir = Path(root_dir)
@@ -105,7 +106,8 @@ class DirectoryDataset(Dataset):
         if self.indices is not None:
             idx = self.indices[idx]
         wav, sr = self.wavs[idx], self.sample_rate
-        wav_str = f"{self.root_dir}_{wav}_{sr}"
+        str_root = hash_md5(str(self.root_dir)) + "_" + hash_md5(str(wav))
+        wav_str = f"{str_root}_{sr}"
         if check_cache(wav_str):
             audio = load_cache(wav_str)
         else:
@@ -113,6 +115,9 @@ class DirectoryDataset(Dataset):
             cache(audio, wav_str)
         with open(self.texts[idx], "r", encoding="utf-8") as f:
             text = f.read()
+        if audio.shape[0] == 0:
+            print(f"Empty audio file: {wav}, padding with zeros.")
+            audio = np.zeros(16000)
         return audio, text, self.speakers[idx]
 
     def __hash__(self) -> int:
@@ -135,7 +140,7 @@ class TarDataset(Dataset):
     """
 
     def __init__(self, root_tar: str = None, sample_rate: int = 22050):
-        super().__init__(sample_rate)
+        super().__init__(Path(root_tar).name, sample_rate)
         if root_tar is None:
             raise ValueError("root_tar must be provided.")
         self.root_tar = root_tar
@@ -178,6 +183,9 @@ class TarDataset(Dataset):
             cache(audio, wav_str)
         text_file = self.tar.extractfile(str(self.texts[idx]))
         text = text_file.read().decode("utf-8")
+        if audio.shape[0] == 0:
+            print(f"Empty audio file: {wav}, padding with zeros.")
+            audio = np.zeros(16000)
         return audio, text, self.speakers[idx]
 
     def __hash__(self) -> int:

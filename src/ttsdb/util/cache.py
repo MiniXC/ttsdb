@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from hashlib import md5
 
 import numpy as np
 
@@ -7,6 +8,21 @@ CACHE_DIR = os.getenv("TTSDB_CACHE_DIR", os.path.expanduser("~/.cache/ttsdb"))
 CACHE_DIR = Path(CACHE_DIR)
 if not CACHE_DIR.exists():
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def hash_md5(obj) -> str:
+    """
+    Hash an object.
+
+    Args:
+        obj: The object to hash.
+
+    Returns:
+        str: The hash of the object.
+    """
+    h = md5()
+    h.update(str(obj.__hash__()).encode())
+    return h.hexdigest()
 
 
 def cache(obj: np.ndarray, name: str) -> np.ndarray:

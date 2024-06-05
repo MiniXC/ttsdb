@@ -11,10 +11,11 @@ import json
 import numpy as np
 
 from ttsdb.util.dataset import Dataset, TarDataset
-from ttsdb.util.cache import cache, load_cache, check_cache
+from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
 from ttsdb.util.distances import wasserstein_distance, frechet_distance
 
-N_TEST_DATASET_SPLITS = 10
+# change to arguments of benchmarksuite
+N_TEST_DATASET_SPLITS = 2
 N_SAMPLES_PER_SPLIT = 100
 
 
@@ -27,7 +28,7 @@ class BenchmarkCategory(Enum):
     PROSODY = 2
     ENVIRONMENT = 3
     SPEAKER = 4
-    PRONUNCIATION = 5
+    PHONETICS = 5
     INTELLIGIBILITY = 6
     TRAINABILITY = 7
 
@@ -69,8 +70,8 @@ class Benchmark(ABC):
         with the values of the benchmark for each sample in the dataset, where each
         row corresponds to a sample and each column corresponds to a dimension of the benchmark.
         """
-        ds_hash = hash(dataset)
-        benchmark_hash = hash(self)
+        ds_hash = hash_md5(dataset)
+        benchmark_hash = hash_md5(self)
         cache_name = f"{ds_hash}_{benchmark_hash}"
         if check_cache(cache_name):
             return load_cache(cache_name)
@@ -118,7 +119,12 @@ class Benchmark(ABC):
         else:
             raise ValueError("Invalid benchmark dimension")
 
-    def compute_score(self, dataset: Dataset) -> float:
+    def compute_score(
+        self,
+        dataset: Dataset,
+        n_test_splits: int = N_TEST_DATASET_SPLITS,
+        n_samples_per_split: int = N_SAMPLES_PER_SPLIT,
+    ) -> float:
         """
         Compute the score of the benchmark on a dataset.
         """
@@ -129,11 +135,11 @@ class Benchmark(ABC):
         # and 0 is equal to the noise dataset
         with importlib.resources.path("ttsdb", "data") as data_path:
             noise_dataset = data_path / "noise.tar.gz"
-            noise_tar_dataset = TarDataset(noise_dataset).sample(N_SAMPLES_PER_SPLIT)
+            noise_tar_dataset = TarDataset(noise_dataset).sample(n_samples_per_split)
             test_dataset = data_path / "libritts_test.tar.gz"
             test_tar_datasets = [
-                TarDataset(test_dataset).sample(N_SAMPLES_PER_SPLIT, seed=i)
-                for i in range(N_TEST_DATASET_SPLITS)
+                TarDataset(test_dataset).sample(n_samples_per_split, seed=i)
+                for i in range(n_test_splits)
             ]
         noise_scores = []
         for test_ds in test_tar_datasets:

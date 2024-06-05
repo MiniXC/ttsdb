@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from transformers import Wav2Vec2Processor, HubertModel
-from tqdm.contrib.concurrent import process_map
 from tqdm import tqdm
 import librosa
 
