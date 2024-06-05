@@ -1,7 +1,17 @@
 from pathlib import Path
+import tarfile
 
 from ttsdb import BenchmarkSuite
 from ttsdb.util.dataset import DirectoryDataset
+
+# Extract the Blizzard 2008 dataset
+if not Path("processed_data").exists():
+    with tarfile.open("processed_data.tar.gz", "r:gz") as tar:
+        tar.extractall()
+
+# remove files starting with ._
+for x in Path("processed_data").rglob("._*"):
+    x.unlink()
 
 datasets = [
     DirectoryDataset(Path(x))
