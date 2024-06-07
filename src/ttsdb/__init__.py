@@ -15,6 +15,7 @@ from ttsdb.benchmarks.phonetics.allosaurus import AllosaurusBenchmark
 from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.speaker.xvector import XVectorBenchmark
+from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.util.dataset import Dataset
 
 benchmark_dict = {
@@ -28,6 +29,7 @@ benchmark_dict = {
     "allosaurus": AllosaurusBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
+    "kaldi": KaldiBenchmark,
 }
 
 DEFAULT_BENCHMARKS = [
