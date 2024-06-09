@@ -1,17 +1,11 @@
-from dataclasses import dataclass, fields
 from multiprocessing import cpu_count
 import os
-import platform
-from subprocess import run
-import subprocess
-from typing import List
 import importlib.resources
 from pathlib import Path
 from enum import Enum
 import re
 
 import librosa
-from numpy import ndarray
 import pandas as pd
 import soundfile as sf
 import numpy as np
@@ -20,53 +14,12 @@ from tqdm import tqdm
 from ttsdb.util.cache import CACHE_DIR
 from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDimension
 from ttsdb.util.dataset import TarDataset, Dataset
+from ttsdb.util.kaldi import run_command, run_commands, install_kaldi, KALDI_PATH
 
-cpus = min(16, cpu_count())
+CPUS = min(16, cpu_count())
 
-KALDI_PATH = os.getenv("TTSDB_KALDI_PATH", CACHE_DIR / "kaldi")
 with importlib.resources.path("ttsdb", "data") as dp:
     TEST_DS = TarDataset(dp / "libritts_test.tar.gz").sample(100)
-
-
-def run_commands(
-    commands: List[str], directory: str = None, suppress_output: bool = False
-):
-    """
-    Run a list of commands.
-    """
-    for command in commands:
-        if directory:
-            run_command(command, directory, suppress_output)
-        else:
-            run_command(command, suppress_output=suppress_output)
-
-
-def run_command(command: str, directory: str = None, suppress_output: bool = False):
-    """
-    Run a command.
-    """
-    if suppress_output:
-        if directory:
-            run(
-                command,
-                shell=True,
-                check=True,
-                cwd=directory,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        else:
-            run(
-                command,
-                shell=True,
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-    elif directory:
-        run(command, shell=True, check=True, cwd=directory)
-    else:
-        run(command, shell=True, check=True)
 
 
 class KaldiStage(Enum):
@@ -99,76 +52,10 @@ class KaldiBenchmark(Benchmark):
         self.egs_path = self.kaldi_path / "egs/librispeech/s5"
         self.data_path = CACHE_DIR / "kaldi_data"
         # test kali installation
-        try:
-            run_command(
-                f"{kaldi_path}/src/featbin/compute-mfcc-feats --help",
-                suppress_output=True,
-            )
-        except Exception as e:
-            print(f"Error: {e}")
-            self.install_kaldi(kaldi_path)
+        install_kaldi(kaldi_path, self.verbose)
         self.test_set = self.dataset_to_kaldi(test_set, self.egs_path, self.data_path)
         self.stage = stage
         self.verbose = verbose
-
-    def install_kaldi(self, kaldi_path: str):
-        """
-        Install Kaldi.
-        """
-        if not kaldi_path.exists():
-            yn_install_kaldi = input(
-                f"TTSDB_KALDI_PATH is not set. Do you want to install Kaldi to {kaldi_path}? (y/n) "
-            )
-        else:
-            yn_install_kaldi = input(f"Overwrite Kaldi at {kaldi_path}? (y/n) ")
-            if yn_install_kaldi.lower() == "n":
-                return
-            run_command(f"rm -rf {kaldi_path}", suppress_output=not self.verbose)
-        kaldi_path = kaldi_path.resolve()
-        if yn_install_kaldi.lower() == "y":
-            run(
-                f"git clone https://github.com/kaldi-asr/kaldi.git {KALDI_PATH}",
-                shell=True,
-                check=True,
-            )
-            run(
-                f"cd {kaldi_path} && git checkout 26b9f648",
-                shell=True,
-                check=True,
-            )
-            try:
-                is_osx = platform.system() == "Darwin"
-                if not is_osx:
-                    run_commands(
-                        [
-                            f"cd {kaldi_path}/tools && \
-                                sed -i 's/python2.7/python3/' extras/check_dependencies.sh"
-                        ],
-                        suppress_output=not self.verbose,
-                    )
-                else:
-                    run_commands(
-                        [
-                            f"cd {kaldi_path}/tools && \
-                                sed -i '' 's/python2.7/python3/' extras/check_dependencies.sh"
-                        ],
-                        suppress_output=not self.verbose,
-                    )
-                run_commands(
-                    [
-                        f"cd {kaldi_path}/tools && ./extras/check_dependencies.sh",
-                        f"cd {kaldi_path}/tools && make -j {cpus}",
-                        f"cd {kaldi_path}/src && ./configure --shared",
-                        f"cd {kaldi_path}/src && make depend -j {cpus}",
-                        f"cd {kaldi_path}/src && make -j {cpus}",
-                    ],
-                    suppress_output=not self.verbose,
-                )
-            except Exception as e:
-                print(f"Error installing Kaldi: {e}")
-                # remove kaldi
-                run_command(f"rm -rf {kaldi_path}", suppress_output=not self.verbose)
-                raise e
 
     def dataset_to_kaldi(
         self, dataset: Dataset, egs_path: Path, data_path: Path
@@ -240,7 +127,7 @@ class KaldiBenchmark(Benchmark):
                     f"{utt} sox {wav} -t wav -c 1 -b 16 -t wav - rate 16000 |\n"
                 )
         run_command(
-            f"steps/make_mfcc.sh --cmd run.pl --nj {cpus} {dest} {dest_mfcc} mfccs",
+            f"steps/make_mfcc.sh --cmd run.pl --nj {CPUS} {dest} {dest_mfcc} mfccs",
             directory=egs_path,
             suppress_output=not self.verbose,
         )
@@ -267,7 +154,7 @@ class KaldiBenchmark(Benchmark):
         graph_test_path = model_path / "graph_tgsmall_test"
         tst_path = test_set
         run_command(
-            f"steps/decode.sh --nj {cpus} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
+            f"steps/decode.sh --nj {CPUS} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
         )
@@ -336,7 +223,7 @@ class KaldiBenchmark(Benchmark):
                 f"utils/validate_data_dir.sh {train_set}",
                 f"utils/validate_data_dir.sh {self.test_set}",
                 f"local/download_lm.sh www.openslr.org/resources/11 {lm_path}",
-                f"local/prepare_dict.sh --stage 3 --nj {cpus} --cmd run.pl \
+                f"local/prepare_dict.sh --stage 3 --nj {CPUS} --cmd run.pl \
                     {lm_path} {lm_path} {local_data_path / 'local' / 'dict_nosp'}",
                 f"utils/prepare_lang.sh {local_data_path / 'local' / 'dict_nosp'} '<UNK>' \
                     {local_data_path / 'local' / 'lang_tmp'} {local_data_path / 'lang_nosp'}",
@@ -360,7 +247,7 @@ class KaldiBenchmark(Benchmark):
         # mono
         mono_data_path = str(train_set)
         run_command(
-            f"steps/train_mono.sh --boost-silence 1.25 --nj {cpus} --cmd run.pl \
+            f"steps/train_mono.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
                 {mono_data_path} {local_data_path / 'lang_nosp'} {local_exp_path / 'mono'}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -376,7 +263,7 @@ class KaldiBenchmark(Benchmark):
         tri1_data_path = str(train_set)
         tri1_ali_path = str(local_exp_path / "tri1") + "_ali"
         run_command(
-            f"steps/align_si.sh --boost-silence 1.25 --nj {cpus} --cmd run.pl \
+            f"steps/align_si.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
                 {tri1_data_path} {local_data_path / 'lang_nosp'} {local_exp_path / 'mono'} {tri1_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -397,7 +284,7 @@ class KaldiBenchmark(Benchmark):
         # tri2b
         tri2b_ali_path = str(local_exp_path / "tri2b") + "_ali"
         run_command(
-            f"steps/align_si.sh --boost-silence 1.25 --nj {cpus} --cmd run.pl \
+            f"steps/align_si.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
                 {train_set} {local_data_path / 'lang_nosp'} {local_exp_path / 'tri1'} {tri2b_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -418,7 +305,7 @@ class KaldiBenchmark(Benchmark):
         # tri3b
         tri3b_ali_path = str(local_exp_path / "tri3b") + "_ali"
         run_command(
-            f"steps/align_fmllr.sh --nj {cpus} --cmd run.pl --use-graphs true \
+            f"steps/align_fmllr.sh --nj {CPUS} --cmd run.pl --use-graphs true \
                 {train_set} {local_data_path / 'lang_nosp'} {local_exp_path / 'tri2b'} {tri3b_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,

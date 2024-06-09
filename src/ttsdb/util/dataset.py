@@ -21,7 +21,7 @@ class Dataset(ABC):
     Abstract class for a dataset.
     """
 
-    def __init__(self, name, sample_rate: int = 22050):
+    def __init__(self, name, sample_rate: int = 22050, single_speaker: bool = False):
         self.sample_rate = sample_rate
         self.wavs = []
         self.texts = []
@@ -32,6 +32,7 @@ class Dataset(ABC):
         }
         self.name = name
         self.indices = None
+        self.single_speaker = single_speaker
 
     @abstractmethod
     def __len__(self) -> int:
@@ -80,8 +81,8 @@ class DirectoryDataset(Dataset):
     Each file starts with {speaker_name}_.
     """
 
-    def __init__(self, root_dir: str = None, sample_rate: int = 22050):
-        super().__init__(Path(root_dir).name, sample_rate)
+    def __init__(self, root_dir: str = None, sample_rate: int = 22050, single_speaker: bool = False):
+        super().__init__(Path(root_dir).name, sample_rate, single_speaker)
         if root_dir is None:
             raise ValueError("root_dir must be provided.")
         self.root_dir = Path(root_dir)
@@ -89,7 +90,10 @@ class DirectoryDataset(Dataset):
         # subdirectories for each speaker
         speakers, wavs, texts = [], [], []
         for wav_file in Path(root_dir).rglob("*.wav"):
-            speakers.append(wav_file.name.split("_")[0])
+            if not single_speaker:
+                speakers.append(wav_file.name.split("_")[0])
+            else:
+                speakers.append("single_speaker")
             wavs.append(wav_file)
             text = wav_file.with_suffix(".txt")
             texts.append(text)
@@ -139,7 +143,7 @@ class TarDataset(Dataset):
     Each file starts with {speaker_name}_.
     """
 
-    def __init__(self, root_tar: str = None, sample_rate: int = 22050):
+    def __init__(self, root_tar: str = None, sample_rate: int = 22050, single_speaker: bool = False):
         super().__init__(Path(root_tar).name, sample_rate)
         if root_tar is None:
             raise ValueError("root_tar must be provided.")
@@ -150,11 +154,14 @@ class TarDataset(Dataset):
         speakers, wavs, texts = [], [], []
         for member in self.tar.getmembers():
             if member.name.endswith(".wav"):
-                if "/" in member.name:
-                    speaker_member = member.name.split("/")[-1]
+                if not single_speaker:
+                    if "/" in member.name:
+                        speaker_member = member.name.split("/")[-1]
+                    else:
+                        speaker_member = member.name
+                    speakers.append(speaker_member.split("_")[0])
                 else:
-                    speaker_member = member.name
-                speakers.append(speaker_member.split("_")[0])
+                    speakers.append("single_speaker")
                 wav_file = Path(member.name)
                 wavs.append(wav_file)
                 text_file = Path(member.name).with_suffix(".txt")

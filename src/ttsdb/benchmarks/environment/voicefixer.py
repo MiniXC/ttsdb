@@ -22,7 +22,7 @@ class VoiceFixerBenchmark(Benchmark):
         super().__init__(
             name="VoiceFixer",
             category=BenchmarkCategory.PHONETICS,
-            dimension=BenchmarkDimension.ONE_DIMENSIONAL,
+            dimension=BenchmarkDimension.N_DIMENSIONAL,
             description="The phone counts of VoiceFixer.",
         )
         self.model = VoiceFixer()
@@ -39,13 +39,18 @@ class VoiceFixerBenchmark(Benchmark):
             float: The Word Error Rate (WER) distribution of the VoiceFixer model.
         """
         mel_diffs = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing WER for {self.name}"):
+        for wav, _, _ in tqdm(dataset, desc=f"computing noise for {self.name}"):
             if dataset.sample_rate != 16000:
                 wav = librosa.resample(
                     wav, orig_sr=dataset.sample_rate, target_sr=16000
                 )
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
-                sf.write(f.name, wav, 16000)
+                # take the 16000 samples from the middle
+                num_secs = 2
+                num_samples = num_secs * 16000
+                if len(wav) > num_samples:
+                    wav = wav[int(len(wav) / 2) - num_samples // 2 : int(len(wav) / 2) + num_samples // 2]
+                sf.write(f.name, wav, num_samples)
                 with tempfile.NamedTemporaryFile(suffix=".wav") as f_out:
                     self.model.restore(f.name, f_out.name)
                     wav_out, _ = librosa.load(f_out.name, sr=16000)

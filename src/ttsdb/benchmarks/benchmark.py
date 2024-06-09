@@ -7,16 +7,13 @@ from enum import Enum
 import hashlib
 import importlib.resources
 import json
+from typing import List
 
 import numpy as np
 
-from ttsdb.util.dataset import Dataset, TarDataset
+from ttsdb.util.dataset import Dataset
 from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
 from ttsdb.util.distances import wasserstein_distance, frechet_distance
-
-# change to arguments of benchmarksuite
-N_TEST_DATASET_SPLITS = 2
-N_SAMPLES_PER_SPLIT = 100
 
 
 class BenchmarkCategory(Enum):
@@ -122,37 +119,26 @@ class Benchmark(ABC):
     def compute_score(
         self,
         dataset: Dataset,
-        n_test_splits: int = N_TEST_DATASET_SPLITS,
-        n_samples_per_split: int = N_SAMPLES_PER_SPLIT,
+        reference_datasets: List[Dataset],
+        noise_datasets: List[Dataset],
     ) -> float:
         """
         Compute the score of the benchmark on a dataset.
         """
-        # we calculate the distributions
-        # for the test and noise datasets
-        # the score is from 0 to 100
-        # where 100 is equal distributions
-        # and 0 is equal to the noise dataset
-        with importlib.resources.path("ttsdb", "data") as data_path:
-            noise_dataset = data_path / "noise.tar.gz"
-            noise_tar_dataset = TarDataset(noise_dataset).sample(n_samples_per_split)
-            test_dataset = data_path / "libritts_test.tar.gz"
-            test_tar_datasets = [
-                TarDataset(test_dataset).sample(n_samples_per_split, seed=i)
-                for i in range(n_test_splits)
-            ]
         noise_scores = []
-        for test_ds in test_tar_datasets:
-            score = self.compute_distance(test_ds, noise_tar_dataset)
-            noise_scores.append(score)
+        for ref_ds in reference_datasets:
+            for noise_ds in noise_datasets:
+                score = self.compute_distance(ref_ds, noise_ds)
+                noise_scores.append(score)
         noise_scores = np.array(noise_scores)
 
         dataset_scores = []
-        for test_ds in test_tar_datasets:
-            score = self.compute_distance(test_ds, dataset)
+        for ref_ds in reference_datasets:
+            score = self.compute_distance(ref_ds, dataset)
             dataset_scores.append(score)
         dataset_scores = np.array(dataset_scores)
 
-        scores = 100 * (1 - dataset_scores / noise_scores)
-        confidence_interval = 1.96 * np.std(scores) / np.sqrt(N_TEST_DATASET_SPLITS)
-        return np.mean(scores), confidence_interval
+        noise_score = np.min(noise_scores)
+        scores = 100 * (1 - dataset_scores / noise_score)
+        confidence_interval = 1.96 * np.std(scores) / np.sqrt(len(scores))
+        return np.max(scores), confidence_interval

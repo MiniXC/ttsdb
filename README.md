@@ -12,6 +12,14 @@
 
 ## Installation
 
+### Requirements
+
+- Python 3.8+
+- ffmpeg
+- 17+ GB of RAM
+
+### Pip
+
 ```console
 pip install ttsdb
 ```

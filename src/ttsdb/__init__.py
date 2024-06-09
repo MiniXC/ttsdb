@@ -2,8 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 from typing import List, Tuple
+import importlib.resources
 
 import pandas as pd
+from transformers import logging
+import numpy as np
 
 from ttsdb.benchmarks.environment.voicefixer import VoiceFixerBenchmark
 from ttsdb.benchmarks.environment.wada_snr import WadaSNRBenchmark
@@ -16,7 +19,11 @@ from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.speaker.xvector import XVectorBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
-from ttsdb.util.dataset import Dataset
+from ttsdb.util.dataset import Dataset, TarDataset
+
+# we do this to avoid "some weights of the model checkpoint at ... were not used when initializing" warnings
+logging.set_verbosity_error()
+
 
 benchmark_dict = {
     "mfcc": MFCCBenchmark,
@@ -45,6 +52,25 @@ DEFAULT_BENCHMARKS = [
     "wada_snr",
 ]
 
+with importlib.resources.path("ttsdb", "data") as data_path:
+    REFERENCE_DATASETS = [
+        data_path / "reference/speech_blizzard2008.tar.gz",
+        data_path / "reference/speech_blizzard2013.tar.gz",
+        data_path / "reference/speech_common_voice.tar.gz",
+        data_path / "reference/speech_libritts_test.tar.gz",
+        data_path / "reference/speech_lj_speech.tar.gz",
+        data_path / "reference/speech_vctk.tar.gz",
+    ]
+    REFERENCE_DATASETS = [TarDataset(x, single_speaker=True) for x in REFERENCE_DATASETS]
+
+    NOISE_DATASETS = [
+        data_path / "noise/esc50.tar.gz",
+        data_path / "noise/noise_all_ones.tar.gz",
+        data_path / "noise/noise_all_zeros.tar.gz",
+        data_path / "noise/noise_normal_distribution.tar.gz",
+        data_path / "noise/noise_uniform_distribution.tar.gz",
+    ]
+    NOISE_DATASETS = [TarDataset(x, single_speaker=True) for x in NOISE_DATASETS]
 
 class BenchmarkSuite:
 
@@ -52,8 +78,10 @@ class BenchmarkSuite:
         self,
         datasets: List[Dataset],
         benchmarks: List[str] = DEFAULT_BENCHMARKS,
-        n_test_splits: int = None,
-        n_samples_per_split: int = None,
+        print_results: bool = True,
+        skip_errors: bool = True,
+        noise_datasets: List[Dataset] = NOISE_DATASETS,
+        reference_datasets: List[Dataset] = REFERENCE_DATASETS,
     ):
         self.benchmarks = benchmarks
         self.benchmark_objects = [
@@ -64,11 +92,14 @@ class BenchmarkSuite:
             self.benchmark_objects, key=lambda x: (x.category.value, x.name)
         )
         self.datasets = datasets
+        self.datasets = sorted(self.datasets, key=lambda x: x.name)
         self.database = pd.DataFrame(
             columns=["benchmark_name", "benchmark_category", "dataset", "score", "ci"]
         )
-        self.n_test_splits = n_test_splits
-        self.n_samples_per_split = n_samples_per_split
+        self.print_results = print_results
+        self.skip_errors = skip_errors
+        self.noise_datasets = noise_datasets
+        self.reference_datasets = reference_datasets
 
     def run(self) -> pd.DataFrame:
         for benchmark in self.benchmark_objects:
@@ -78,28 +109,21 @@ class BenchmarkSuite:
                 print(f"{'='*80}")
                 print(f"Benchmark Category: {benchmark.category.value}")
                 print(f"Running {benchmark.name} on {dataset.root_dir}")
-                if (
-                    self.n_test_splits is not None
-                    and self.n_samples_per_split is not None
-                ):
-                    score = benchmark.compute_score(
-                        dataset,
-                        n_test_splits=self.n_test_splits,
-                        n_samples_per_split=self.n_samples_per_split,
-                    )
-                else:
-                    score = benchmark.compute_score(dataset)
+                score = benchmark.compute_score(dataset, self.reference_datasets, self.noise_datasets)
+                result = {
+                    "benchmark_name": [benchmark.name],
+                    "benchmark_category": [benchmark.category.value],
+                    "dataset": [dataset.name],
+                    "score": [score[0]],
+                    "ci": [score[1]],
+                }
+                if self.print_results:
+                    print(result)
                 self.database = pd.concat(
                     [
                         self.database,
                         pd.DataFrame(
-                            {
-                                "benchmark_name": [benchmark.name],
-                                "benchmark_category": [benchmark.category.value],
-                                "dataset": [dataset.name],
-                                "score": [score[0]],
-                                "ci": [score[1]],
-                            }
+                            result
                         ),
                     ]
                 )

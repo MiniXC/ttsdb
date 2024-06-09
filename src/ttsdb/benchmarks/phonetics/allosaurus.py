@@ -31,13 +31,13 @@ class AllosaurusBenchmark(Benchmark):
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
-        Compute the Word Error Rate (WER) distribution of the Allosaurus model.
+        Compute the phone distribution of the Allosaurus model.
 
         Args:
-            dataset (Dataset): The dataset to compute the WER on.
+            dataset (Dataset): The dataset to extract the phones for.
 
         Returns:
-            float: The Word Error Rate (WER) distribution of the Allosaurus model.
+            float: The phone distribution of the Allosaurus model.
         """
         phone_dict = {}
         for wav, _, _ in tqdm(dataset, desc=f"computing WER for {self.name}"):

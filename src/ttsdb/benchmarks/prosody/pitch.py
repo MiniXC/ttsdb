@@ -34,7 +34,7 @@ class PitchBenchmark(Benchmark):
         """
         pitches = []
         for wav, _, _ in tqdm(dataset, desc=f"computing pitches for {self.name}"):
-            pitch = self.pitch_measure(audio, np.array([1000]))["measure"]
+            pitch = self.pitch_measure(wav, np.array([1000]))["measure"]
             pitches.append(np.mean(pitch))
         pitches = np.array(pitches)
         return pitches
