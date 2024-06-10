@@ -51,11 +51,11 @@ class KaldiBenchmark(Benchmark):
         self.kaldi_path = kaldi_path
         self.egs_path = self.kaldi_path / "egs/librispeech/s5"
         self.data_path = CACHE_DIR / "kaldi_data"
-        # test kali installation
-        install_kaldi(kaldi_path, self.verbose)
         self.test_set = self.dataset_to_kaldi(test_set, self.egs_path, self.data_path)
         self.stage = stage
         self.verbose = verbose
+        # test kali installation
+        install_kaldi(kaldi_path, self.verbose)
 
     def dataset_to_kaldi(
         self, dataset: Dataset, egs_path: Path, data_path: Path
