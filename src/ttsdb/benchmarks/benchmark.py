@@ -8,6 +8,7 @@ import hashlib
 import importlib.resources
 import json
 from typing import List
+from functools import lru_cache
 
 import numpy as np
 
@@ -103,6 +104,7 @@ class Benchmark(ABC):
         h.update(json.dumps(kwargs_str, sort_keys=True).encode())
         return int(h.hexdigest(), 16)
 
+    @lru_cache(maxsize=None)
     def compute_distance(self, one_dataset: Dataset, other_dataset: Dataset) -> float:
         """
         Compute the distance between the distributions of the benchmark in two datasets.

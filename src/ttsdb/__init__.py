@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2024-present Christoph Minixhofer <christoph.minixhofer@gmail.com>
 #
 # SPDX-License-Identifier: MIT
-from typing import List, Tuple
+from typing import List
 import importlib.resources
+from time import time
 
 import pandas as pd
 from transformers import logging
@@ -17,7 +18,7 @@ from ttsdb.benchmarks.intelligibility.whisper_wer import WhisperWERBenchmark
 from ttsdb.benchmarks.phonetics.allosaurus import AllosaurusBenchmark
 from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
-from ttsdb.benchmarks.speaker.xvector import XVectorBenchmark
+from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.util.dataset import Dataset, TarDataset
 
@@ -32,7 +33,7 @@ benchmark_dict = {
     "whisper": WhisperWERBenchmark,
     "mpm": MPMBenchmark,
     "pitch": PitchBenchmark,
-    "xvector": XVectorBenchmark,
+    "wespeaker": WeSpeakerBenchmark,
     "allosaurus": AllosaurusBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
@@ -40,16 +41,16 @@ benchmark_dict = {
 }
 
 DEFAULT_BENCHMARKS = [
-    "mfcc",
-    "hubert",
-    "w2v2",
-    "whisper",
-    "mpm",
-    "pitch",
-    "xvector",
-    "allosaurus",
+    # "mfcc",
+    # "hubert",
+    # "w2v2",
+    # "whisper",
+    # "mpm",
+    # "pitch",
+    # "wespeaker",
+    # "allosaurus",
     "voicefixer",
-    "wada_snr",
+    # "wada_snr",
 ]
 
 with importlib.resources.path("ttsdb", "data") as data_path:
@@ -79,7 +80,7 @@ class BenchmarkSuite:
         datasets: List[Dataset],
         benchmarks: List[str] = DEFAULT_BENCHMARKS,
         print_results: bool = True,
-        skip_errors: bool = True,
+        skip_errors: bool = False,
         noise_datasets: List[Dataset] = NOISE_DATASETS,
         reference_datasets: List[Dataset] = REFERENCE_DATASETS,
     ):
@@ -94,7 +95,7 @@ class BenchmarkSuite:
         self.datasets = datasets
         self.datasets = sorted(self.datasets, key=lambda x: x.name)
         self.database = pd.DataFrame(
-            columns=["benchmark_name", "benchmark_category", "dataset", "score", "ci"]
+            columns=["benchmark_name", "benchmark_category", "dataset", "score", "ci", "time_taken"]
         )
         self.print_results = print_results
         self.skip_errors = skip_errors
@@ -109,13 +110,24 @@ class BenchmarkSuite:
                 print(f"{'='*80}")
                 print(f"Benchmark Category: {benchmark.category.value}")
                 print(f"Running {benchmark.name} on {dataset.root_dir}")
-                score = benchmark.compute_score(dataset, self.reference_datasets, self.noise_datasets)
+                try:
+                    start = time()
+                    score = benchmark.compute_score(dataset, self.reference_datasets, self.noise_datasets)
+                    time_taken = time() - start
+                except Exception as e:
+                    if self.skip_errors:
+                        print(f"Error: {e}")
+                        score = (np.nan, np.nan)
+                        time_taken = np.nan
+                    else:
+                        raise e
                 result = {
                     "benchmark_name": [benchmark.name],
                     "benchmark_category": [benchmark.category.value],
                     "dataset": [dataset.name],
                     "score": [score[0]],
                     "ci": [score[1]],
+                    "time_taken": [time_taken],
                 }
                 if self.print_results:
                     print(result)

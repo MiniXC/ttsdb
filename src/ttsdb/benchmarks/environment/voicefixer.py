@@ -54,7 +54,7 @@ class VoiceFixerBenchmark(Benchmark):
                 with tempfile.NamedTemporaryFile(suffix=".wav") as f_out:
                     self.model.restore(f.name, f_out.name)
                     wav_out, _ = librosa.load(f_out.name, sr=16000)
-            wav = wav / np.max(np.abs(wav))
+            wav = wav / (np.max(np.abs(wav)) + 1e-5)
             wav_out = wav_out / np.max(np.abs(wav_out))
             mel = self.synthesiser.wav_to_mel(wav, 16000)[0].T
             mel_out = self.synthesiser.wav_to_mel(wav_out, 16000)[0].T
@@ -63,6 +63,9 @@ class VoiceFixerBenchmark(Benchmark):
             elif mel_out.shape[0] < mel.shape[0]:
                 mel = mel[: mel_out.shape[0]]
             mel_diff = mel - mel_out
+            # check if there is any nan
+            if np.isnan(mel_diff).any():
+                continue
             mel_diffs.append(mel_diff)
         mel_diffs = np.vstack(mel_diffs)
         return mel_diffs

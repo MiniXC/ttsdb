@@ -9,7 +9,6 @@ CACHE_DIR = Path(CACHE_DIR)
 if not CACHE_DIR.exists():
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-
 def hash_md5(obj) -> str:
     """
     Hash an object.

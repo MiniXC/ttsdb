@@ -86,11 +86,11 @@ st.markdown(
     """
 )
 
-with st.expander("XVector"):
+with st.expander("WeSpeaker"):
     st.markdown(
         """
-    #### XVector
-    This benchmark uses the embeddings of a pretrained XVector model.
+    #### WeSpeaker
+    This benchmark uses the speaker embeddings of a pretrained WeSpeaker model.
     """
     )
 

@@ -1,7 +1,7 @@
 import tempfile
 import os
 
-from pyannote.audio import Model, Inference
+import wespeaker
 from tqdm import tqdm
 import numpy as np
 import librosa
@@ -11,9 +11,9 @@ from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDi
 from ttsdb.util.dataset import Dataset
 
 
-class XVectorBenchmark(Benchmark):
+class WeSpeakerBenchmark(Benchmark):
     """
-    Benchmark class for the XVector benchmark.
+    Benchmark class for the WeSpeaker benchmark.
     """
 
     def __init__(
@@ -22,27 +22,24 @@ class XVectorBenchmark(Benchmark):
         window_step: float = 0.5,
     ):
         super().__init__(
-            name="XVector",
+            name="WeSpeaker",
             category=BenchmarkCategory.SPEAKER,
-            dimension=BenchmarkDimension.ONE_DIMENSIONAL,
-            description="The speaker embeddings of XVector.",
+            dimension=BenchmarkDimension.N_DIMENSIONAL,
+            description="The speaker embeddings using WeSpeaker.",
             window_duration=window_duration,
             window_step=window_step,
         )
-        model = Model.from_pretrained(
-            "pyannote/embedding", use_auth_token=os.getenv("HUGGINGFACE_TOKEN")
-        )
-        self.model = Inference(model, window="sliding", duration=3.0, step=1.0)
+        self.model = wespeaker.load_model('english')
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
-        Get the distribution of the XVector benchmark.
+        Get the distribution of the WeSpeaker benchmark.
 
         Args:
             dataset (Dataset): The dataset to get the distribution from.
 
         Returns:
-            np.ndarray: The distribution of the XVector benchmark.
+            np.ndarray: The distribution of the WeSpeaker benchmark.
         """
         embeddings = []
         for wav, _, _ in tqdm(dataset, desc=f"computing embeddings for {self.name}"):
@@ -52,7 +49,8 @@ class XVectorBenchmark(Benchmark):
                 )
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
                 sf.write(f.name, wav, 16000)
-                embedding = Inference(self.model)
+                embedding = self.model.extract_embedding(f.name).numpy()
             embeddings.append(embedding)
         embeddings = np.vstack(embeddings)
+        print(dataset.name, embeddings.mean(), embeddings.std())
         return embeddings

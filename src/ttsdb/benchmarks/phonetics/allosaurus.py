@@ -17,7 +17,7 @@ class AllosaurusBenchmark(Benchmark):
 
     def __init__(
         self,
-        num_phones: int = 40,
+        num_phones: int = 100,
     ):
         super().__init__(
             name="Allosaurus",
