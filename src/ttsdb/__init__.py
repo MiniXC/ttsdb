@@ -41,16 +41,17 @@ benchmark_dict = {
 }
 
 DEFAULT_BENCHMARKS = [
-    # "mfcc",
-    # "hubert",
-    # "w2v2",
-    # "whisper",
-    # "mpm",
-    # "pitch",
-    # "wespeaker",
-    # "allosaurus",
+    "mfcc",
+    "hubert",
+    "w2v2",
+    "whisper",
+    "mpm",
+    "pitch",
+    "wespeaker",
+    "allosaurus",
     "voicefixer",
-    # "wada_snr",
+    "wada_snr",
+    "kaldi"
 ]
 
 with importlib.resources.path("ttsdb", "data") as data_path:
@@ -72,6 +73,9 @@ with importlib.resources.path("ttsdb", "data") as data_path:
         data_path / "noise/noise_uniform_distribution.tar.gz",
     ]
     NOISE_DATASETS = [TarDataset(x, single_speaker=True) for x in NOISE_DATASETS]
+    # we need this for kaldis benchmark, to avoid unnecessary computation
+    for dataset in NOISE_DATASETS:
+        dataset.is_noise_dataset = True
 
 class BenchmarkSuite:
 

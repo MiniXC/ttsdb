@@ -210,5 +210,7 @@ class WadaSNRBenchmark(Benchmark):
         snrs = []
         for wav, _, _ in dataset:
             snr = wada_snr(wav)
+            if np.isnan(snr):
+                snr = 0
             snrs.append(snr)
         return np.array(snrs)
