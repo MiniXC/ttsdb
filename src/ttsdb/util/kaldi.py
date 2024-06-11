@@ -74,15 +74,13 @@ def install_kaldi(kaldi_path: str = KALDI_PATH, verbose: bool = False):
             run_command(f"rm -rf {kaldi_path}", suppress_output=not verbose)
         kaldi_path = kaldi_path.resolve()
         if yn_install_kaldi.lower() == "y":
-            run(
+            run_command(
                 f"git clone https://github.com/kaldi-asr/kaldi.git {KALDI_PATH}",
-                shell=True,
-                check=True,
+                suppress_output=not verbose,
             )
-            run(
+            run_command(
                 f"cd {kaldi_path} && git checkout 26b9f648",
-                shell=True,
-                check=True,
+                suppress_output=not verbose,
             )
             try:
                 is_osx = platform.system() == "Darwin"
@@ -105,16 +103,16 @@ def install_kaldi(kaldi_path: str = KALDI_PATH, verbose: bool = False):
                 run_commands(
                     [
                         f"cd {kaldi_path}/tools && ./extras/check_dependencies.sh",
-                        f"cd {kaldi_path}/tools && make -j {cpus}",
+                        f"cd {kaldi_path}/tools && make -j {CPUS}",
                         f"cd {kaldi_path}/src && ./configure --shared",
-                        f"cd {kaldi_path}/src && make depend -j {cpus}",
-                        f"cd {kaldi_path}/src && make -j {cpus}",
+                        f"cd {kaldi_path}/src && make depend -j {CPUS}",
+                        f"cd {kaldi_path}/src && make -j {CPUS}",
                     ],
                     suppress_output=not verbose,
                 )
             except Exception as e:
                 print(f"Error installing Kaldi: {e}")
                 # remove kaldi
-                run_command(f"rm -rf {kaldi_path}", suppress_output=not verbose)
+                # run_command(f"rm -rf {kaldi_path}", suppress_output=not verbose)
                 raise e
             os.environ["KALDI_ROOT"] = kaldi_path

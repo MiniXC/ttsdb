@@ -87,11 +87,14 @@ class BenchmarkSuite:
         skip_errors: bool = False,
         noise_datasets: List[Dataset] = NOISE_DATASETS,
         reference_datasets: List[Dataset] = REFERENCE_DATASETS,
+        write_to_file: str = None,
+        **kwargs,
     ):
         self.benchmarks = benchmarks
-        self.benchmark_objects = [
-            benchmark_dict[benchmark]() for benchmark in benchmarks
-        ]
+        self.benchmark_objects = []
+        for benchmark in benchmarks:
+            kwargs_for_benchmark = kwargs.get(benchmark, {})
+            self.benchmark_objects.append(benchmark_dict[benchmark](**kwargs_for_benchmark))
         # sort by category and then by name
         self.benchmark_objects = sorted(
             self.benchmark_objects, key=lambda x: (x.category.value, x.name)
@@ -105,6 +108,7 @@ class BenchmarkSuite:
         self.skip_errors = skip_errors
         self.noise_datasets = noise_datasets
         self.reference_datasets = reference_datasets
+        self.write_to_file = write_to_file
 
     def run(self) -> pd.DataFrame:
         for benchmark in self.benchmark_objects:
@@ -143,4 +147,6 @@ class BenchmarkSuite:
                         ),
                     ]
                 )
+                if self.write_to_file is not None:
+                    self.database.to_csv(self.write_to_file, index=False)
         return self.database

@@ -15,8 +15,7 @@
 ### Requirements
 
 - Python 3.8+
-- ffmpeg
-- 17+ GB of RAM
+- ffmpeg, automake, autoconf, unzip, sox, gfortran, subversion, libtool
 
 ### Pip
 

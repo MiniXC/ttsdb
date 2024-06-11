@@ -19,6 +19,6 @@ datasets = [
     if len(x.name) == 1 and len(list(x.rglob("*.wav"))) > 0
 ]
 
-benchmark_suite = BenchmarkSuite(datasets)
+benchmark_suite = BenchmarkSuite(datasets, write_to_file="results.csv", kaldi={"verbose": True})
 
 df = benchmark_suite.run()
