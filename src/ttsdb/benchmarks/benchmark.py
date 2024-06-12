@@ -9,6 +9,7 @@ import importlib.resources
 import json
 from typing import List
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 
@@ -71,7 +72,7 @@ class Benchmark(ABC):
         """
         ds_hash = hash_md5(dataset)
         benchmark_hash = hash_md5(self)
-        cache_name = f"{ds_hash}_{benchmark_hash}"
+        cache_name = f"benchmarks/{self.name}/{ds_hash}_{benchmark_hash}"
         if check_cache(cache_name):
             return load_cache(cache_name)
         distribution = self._get_distribution(dataset)

@@ -18,16 +18,12 @@ class WeSpeakerBenchmark(Benchmark):
 
     def __init__(
         self,
-        window_duration: float = 3.0,
-        window_step: float = 0.5,
     ):
         super().__init__(
             name="WeSpeaker",
             category=BenchmarkCategory.SPEAKER,
             dimension=BenchmarkDimension.N_DIMENSIONAL,
             description="The speaker embeddings using WeSpeaker.",
-            window_duration=window_duration,
-            window_step=window_step,
         )
         self.model = wespeaker.load_model('english')
 

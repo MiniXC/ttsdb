@@ -36,6 +36,7 @@ def cache(obj: np.ndarray, name: str) -> np.ndarray:
         np.ndarray: The cached numpy array.
     """
     cache_file = CACHE_DIR / f"{name}.npy"
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
     np.save(cache_file, obj)
     return obj
 
