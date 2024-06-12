@@ -1,11 +1,15 @@
+import os
+from pathlib import Path
+
+import requests
+import numpy as np
+import hydra
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import os
-import numpy as np
-import hydra
-from model import load_ssl_model, PhonemeEncoder, DomainEmbedding, LDConditioner, Projection
 
+from ttsdb.benchmarks.external.utmos.model import load_ssl_model, PhonemeEncoder, DomainEmbedding, LDConditioner, Projection
+from ttsdb.util.cache import CACHE_DIR
 
 class BaselineLightningModule(pl.LightningModule):
     def __init__(self, cfg):
@@ -15,8 +19,16 @@ class BaselineLightningModule(pl.LightningModule):
         self.save_hyperparameters()
     
     def construct_model(self):
+        wav2vec_path = Path(CACHE_DIR) / 'wav2vec_small.pt'
+        url = 'https://huggingface.co/spaces/sarulab-speech/UTMOS-demo/resolve/main/wav2vec_small.pt?download=true'
+        if not wav2vec_path.exists():
+            print("Downloading wav2vec_small.pt...")
+            response = requests.get(url)
+            with open(wav2vec_path, "wb") as f:
+                f.write(response.content)
+        wav2vec_path = str(wav2vec_path)
         self.feature_extractors = nn.ModuleList([
-            load_ssl_model(cp_path='wav2vec_small.pt'),
+            load_ssl_model(cp_path=wav2vec_path),
             DomainEmbedding(3,128),
         ])
         output_dim = sum([ feature_extractor.get_output_dim() for feature_extractor in self.feature_extractors])

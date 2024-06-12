@@ -7,6 +7,9 @@ import numpy as np
 from ttsdb import BenchmarkSuite
 from ttsdb.util.dataset import DirectoryDataset
 from ttsdb.benchmarks.external.pesq import PESQBenchmark
+from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
+from ttsdb.benchmarks.external.utmos import UTMOSBenchmark
+from ttsdb.benchmarks.benchmark import Benchmark
 
 # Extract the Blizzard 2008 dataset
 if not Path("processed_data").exists():
@@ -46,16 +49,24 @@ benchmark_suite = BenchmarkSuite(
 
 df = benchmark_suite.run()
 
-# external benchmarks
-pesq_df = pd.DataFrame()
-dataset = sorted(datasets, key=lambda x: x.name)
-pesq = PESQBenchmark(datasets[0])
-pesq_names = []
-pesq_scores = []
-for d in dataset:
-    score = np.mean(pesq._get_distribution(d))
-    pesq_names.append(d.name)
-    pesq_scores.append(score)
-pesq_df["name"] = pesq_names
-pesq_df["pesq"] = pesq_scores
-pesq_df.to_csv("pesq.csv", index=False)
+# sort datasets
+datasets = sorted(datasets, key=lambda x: x.name)
+
+def run_external_benchmark(benchmark: Benchmark, datasets: list):
+    if Path(f"{benchmark.name.lower()}.csv").exists():
+        return pd.read_csv(f"{benchmark.name.lower()}.csv")
+    df = pd.DataFrame()
+    names = []
+    scores = []
+    for d in datasets:
+        score = np.mean(benchmark._get_distribution(d))
+        names.append(d.name)
+        scores.append(score)
+    df["name"] = names
+    df[benchmark.name] = scores
+    df.to_csv(f"{benchmark.name.lower()}.csv", index=False)
+    return df
+
+run_external_benchmark(PESQBenchmark(datasets[0]), datasets)
+run_external_benchmark(WVMOSBenchmark(), datasets)
+run_external_benchmark(UTMOSBenchmark(), datasets)

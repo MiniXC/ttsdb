@@ -15,6 +15,7 @@ class PESQBenchmark(Benchmark):
     def __init__(
         self,
         reference_dataset: Dataset,
+        sample_rate: int = 16000,
     ):
         super().__init__(
             name="PESQ",
@@ -23,6 +24,7 @@ class PESQBenchmark(Benchmark):
             description="The PESQ benchmark.",
         )
         self.reference_dataset = reference_dataset
+        self.sample_rate = sample_rate
 
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
@@ -52,11 +54,12 @@ class PESQBenchmark(Benchmark):
         sr = dataset.sample_rate
         sr_ref = self.reference_dataset.sample_rate
         for (wav, txt), (wav_ref, txt_ref) in zip(wavs, wavs_ref):
-            if sr != sr_ref:
-                wav = librosa.resample(wav, orig_sr=sr, target_sr=sr_ref)
+            if sr != self.sample_rate:
+                wav = librosa.resample(wav, sr, self.sample_rate)
+            if sr_ref != self.sample_rate:
+                wav_ref = librosa.resample(wav_ref, sr_ref, self.sample_rate)
             if txt != txt_ref:
                 raise ValueError(f"Text mismatch between {txt} and {txt_ref}")
-            score = pesq(sr, wav, wav_ref, "wb")
-            print(score)
+            score = pesq(self.sample_rate, wav_ref, wav, "wb")
             scores.append(score)
         return scores
