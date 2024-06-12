@@ -70,4 +70,4 @@ def frechet_distance(x, y, eps=1e-6):
 
     result = diff.dot(diff) + jnp.trace(sigma1) + jnp.trace(sigma2) - 2 * tr_covmean
 
-    return jnp.sqrt(result)
+    return result

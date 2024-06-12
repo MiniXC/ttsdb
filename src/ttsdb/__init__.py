@@ -4,6 +4,7 @@
 from typing import List
 import importlib.resources
 from time import time
+from pathlib import Path
 
 import pandas as pd
 from transformers import logging
@@ -41,6 +42,7 @@ benchmark_dict = {
 }
 
 DEFAULT_BENCHMARKS = [
+    "kaldi",
     "mfcc",
     "hubert",
     "w2v2",
@@ -51,7 +53,6 @@ DEFAULT_BENCHMARKS = [
     "allosaurus",
     "voicefixer",
     "wada_snr",
-    "kaldi"
 ]
 
 with importlib.resources.path("ttsdb", "data") as data_path:
@@ -109,6 +110,8 @@ class BenchmarkSuite:
         self.noise_datasets = noise_datasets
         self.reference_datasets = reference_datasets
         self.write_to_file = write_to_file
+        if Path(write_to_file).exists():
+            self.database = pd.read_csv(write_to_file)
 
     def run(self) -> pd.DataFrame:
         for benchmark in self.benchmark_objects:
@@ -119,6 +122,13 @@ class BenchmarkSuite:
                 print(f"Benchmark Category: {benchmark.category.value}")
                 print(f"Running {benchmark.name} on {dataset.root_dir}")
                 try:
+                    # check if it's in the database
+                    if (
+                        self.database["benchmark_name"].str.contains(benchmark.name)
+                        & self.database["dataset"].str.contains(dataset.name)
+                    ).any():
+                        print(f"Skipping {benchmark.name} on {dataset.name} as it's already in the database")
+                        continue
                     start = time()
                     score = benchmark.compute_score(dataset, self.reference_datasets, self.noise_datasets)
                     time_taken = time() - start

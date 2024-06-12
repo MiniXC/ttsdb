@@ -49,13 +49,14 @@ class KaldiBenchmark(Benchmark):
             kaldi_path=kaldi_path,
         )
         self.kaldi_path = kaldi_path
-        self.egs_path = self.kaldi_path / "egs/librispeech/s5"
+        self.egs_path = Path(self.kaldi_path) / "egs/librispeech/s5"
         self.data_path = CACHE_DIR / "kaldi_data"
         self.stage = stage
         self.verbose = verbose
         # test kali installation
         install_kaldi(kaldi_path, self.verbose)
         self.test_set = self.dataset_to_kaldi(test_set, self.egs_path, self.data_path)
+        self.cpus = CPUS
 
     def dataset_to_kaldi(
         self, dataset: Dataset, egs_path: Path, data_path: Path
@@ -85,6 +86,10 @@ class KaldiBenchmark(Benchmark):
         ):
             wav_path = dest / f"{speaker}-{idx}.wav"
             text_path = dest / f"{speaker}-{idx}.txt"
+            # check if shorter than half a second
+            if len(wav) < dataset.sample_rate // 2:
+                print(f"Skipping {speaker}-{idx} due to short length")
+                continue
             # resample wav to 16kHz
             if not Path(wav_path).exists():
                 wav = librosa.resample(
@@ -127,7 +132,7 @@ class KaldiBenchmark(Benchmark):
                     f"{utt} sox {wav} -t wav -c 1 -b 16 -t wav - rate 16000 |\n"
                 )
         run_command(
-            f"steps/make_mfcc.sh --cmd run.pl --nj {CPUS} {dest} {dest_mfcc} mfccs",
+            f"steps/make_mfcc.sh --cmd run.pl --nj {self.cpus} {dest} {dest_mfcc} mfccs",
             directory=egs_path,
             suppress_output=not self.verbose,
         )
@@ -154,7 +159,7 @@ class KaldiBenchmark(Benchmark):
         graph_test_path = model_path / "graph_tgsmall_test"
         tst_path = test_set
         run_command(
-            f"steps/decode.sh --nj {CPUS} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
+            f"steps/decode.sh --nj {self.cpus} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
         )
@@ -206,11 +211,13 @@ class KaldiBenchmark(Benchmark):
         per_utt_wer = [x / y for x, y in zip(per_utt_sid, per_utt_counts)]
         if self.verbose:
             print(per_utt_wer)
-        return per_utt_wer
+        return np.array(per_utt_wer)
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         if hasattr(dataset, "is_noise_dataset") and dataset.is_noise_dataset:
             return np.ones(100) * 100
+        if dataset.single_speaker:
+            self.cpus = 1
         egs_path = self.egs_path
         local_data_path = self.data_path
         train_set = self.dataset_to_kaldi(dataset, egs_path, local_data_path)
@@ -225,7 +232,7 @@ class KaldiBenchmark(Benchmark):
                 f"utils/validate_data_dir.sh {train_set}",
                 f"utils/validate_data_dir.sh {self.test_set}",
                 f"local/download_lm.sh www.openslr.org/resources/11 {lm_path}",
-                f"local/prepare_dict.sh --stage 3 --nj {CPUS} --cmd run.pl \
+                f"local/prepare_dict.sh --stage 3 --nj {self.cpus} --cmd run.pl \
                     {lm_path} {lm_path} {local_data_path / 'local' / 'dict_nosp'}",
                 f"utils/prepare_lang.sh {local_data_path / 'local' / 'dict_nosp'} '<UNK>' \
                     {local_data_path / 'local' / 'lang_tmp'} {local_data_path / 'lang_nosp'}",
@@ -249,7 +256,7 @@ class KaldiBenchmark(Benchmark):
         # mono
         mono_data_path = str(train_set)
         run_command(
-            f"steps/train_mono.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
+            f"steps/train_mono.sh --boost-silence 1.25 --nj {self.cpus} --cmd run.pl \
                 {mono_data_path} {local_data_path / 'lang_nosp'} {local_exp_path / 'mono'}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -265,7 +272,7 @@ class KaldiBenchmark(Benchmark):
         tri1_data_path = str(train_set)
         tri1_ali_path = str(local_exp_path / "tri1") + "_ali"
         run_command(
-            f"steps/align_si.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
+            f"steps/align_si.sh --boost-silence 1.25 --nj {self.cpus} --cmd run.pl \
                 {tri1_data_path} {local_data_path / 'lang_nosp'} {local_exp_path / 'mono'} {tri1_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -286,7 +293,7 @@ class KaldiBenchmark(Benchmark):
         # tri2b
         tri2b_ali_path = str(local_exp_path / "tri2b") + "_ali"
         run_command(
-            f"steps/align_si.sh --boost-silence 1.25 --nj {CPUS} --cmd run.pl \
+            f"steps/align_si.sh --boost-silence 1.25 --nj {self.cpus} --cmd run.pl \
                 {train_set} {local_data_path / 'lang_nosp'} {local_exp_path / 'tri1'} {tri2b_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
@@ -307,7 +314,7 @@ class KaldiBenchmark(Benchmark):
         # tri3b
         tri3b_ali_path = str(local_exp_path / "tri3b") + "_ali"
         run_command(
-            f"steps/align_fmllr.sh --nj {CPUS} --cmd run.pl --use-graphs true \
+            f"steps/align_fmllr.sh --nj {self.cpus} --cmd run.pl --use-graphs true \
                 {train_set} {local_data_path / 'lang_nosp'} {local_exp_path / 'tri2b'} {tri3b_ali_path}",
             directory=egs_path,
             suppress_output=not self.verbose,

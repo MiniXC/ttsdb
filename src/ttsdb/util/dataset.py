@@ -118,7 +118,7 @@ class DirectoryDataset(Dataset):
             audio, _ = librosa.load(wav, sr=self.sample_rate)
             cache(audio, wav_str)
         with open(self.texts[idx], "r", encoding="utf-8") as f:
-            text = f.read()
+            text = f.read().replace("\n", "")
         if audio.shape[0] == 0:
             print(f"Empty audio file: {wav}, padding with zeros.")
             audio = np.zeros(16000)
@@ -144,7 +144,7 @@ class TarDataset(Dataset):
     """
 
     def __init__(self, root_tar: str = None, sample_rate: int = 22050, single_speaker: bool = False):
-        super().__init__(Path(root_tar).name, sample_rate)
+        super().__init__(Path(root_tar).name, sample_rate, single_speaker)
         if root_tar is None:
             raise ValueError("root_tar must be provided.")
         self.root_tar = root_tar

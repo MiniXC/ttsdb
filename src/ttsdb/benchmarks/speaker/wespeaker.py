@@ -52,5 +52,4 @@ class WeSpeakerBenchmark(Benchmark):
                 embedding = self.model.extract_embedding(f.name).numpy()
             embeddings.append(embedding)
         embeddings = np.vstack(embeddings)
-        print(dataset.name, embeddings.mean(), embeddings.std())
         return embeddings

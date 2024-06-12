@@ -29,6 +29,7 @@ class BenchmarkCategory(Enum):
     PHONETICS = 5
     INTELLIGIBILITY = 6
     TRAINABILITY = 7
+    EXTERNAL = 8
 
 
 class BenchmarkDimension(Enum):
