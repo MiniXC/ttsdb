@@ -103,7 +103,7 @@ class KaldiBenchmark(Benchmark):
             data_dict["speaker"].append(speaker)
             data_dict["id"].append(f"{speaker}-{idx}")
             data_dict["wav"].append(str(wav_path))
-            text = text.upper()
+            text = text.upper().replace("\n", "")
             data_dict["text"].append(text)
         df = pd.DataFrame(data_dict)
         # spk2utt
@@ -159,7 +159,7 @@ class KaldiBenchmark(Benchmark):
         graph_test_path = model_path / "graph_tgsmall_test"
         tst_path = test_set
         run_command(
-            f"steps/decode.sh --nj {self.cpus} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
+            f"steps/decode.sh --nj {self.decode_cpus} --cmd run.pl {graph_path} {tst_path} {graph_test_path}",
             directory=egs_path,
             suppress_output=not self.verbose,
         )
@@ -216,6 +216,7 @@ class KaldiBenchmark(Benchmark):
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         if hasattr(dataset, "is_noise_dataset") and dataset.is_noise_dataset:
             return np.ones(100) * 100
+        self.decode_cpus = self.cpus
         if dataset.single_speaker:
             self.cpus = 1
         egs_path = self.egs_path
