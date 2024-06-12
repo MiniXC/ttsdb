@@ -62,8 +62,8 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
         score = np.mean(benchmark._get_distribution(d))
         names.append(d.name)
         scores.append(score)
-    df["name"] = names
-    df[benchmark.name] = scores
+    df["dataset"] = names
+    df["score"] = scores
     df.to_csv(f"{benchmark.name.lower()}.csv", index=False)
     return df
 

@@ -65,4 +65,4 @@ def check_cache(name: str) -> bool:
         bool: True if the cache file exists, False otherwise.
     """
     cache_file = CACHE_DIR / f"{name}.npy"
-    return cache_file.exists() and False
+    return cache_file.exists()
