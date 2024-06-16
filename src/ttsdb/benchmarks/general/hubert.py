@@ -18,7 +18,7 @@ class HubertBenchmark(Benchmark):
     def __init__(
         self,
         hubert_model: str = "facebook/hubert-base-ls960",
-        hubert_layer: Union[int, str] = "all", 
+        hubert_layer: Union[int, str] = 7, 
     ):
         super().__init__(
             name="Hubert",
@@ -55,11 +55,12 @@ class HubertBenchmark(Benchmark):
         if isinstance(self.model_layer, int):
             features = features[self.model_layer].detach().cpu().numpy()[0]
         else:
-            layer_num = features.shape[0]
+            layer_num = len(features)
             features_new = []
             for i in range(layer_num):
                 features_new.append(features[i].detach().cpu().numpy()[0])
-            features = np.concatenate(features_new, axis=0)
+            features = np.stack(features_new, axis=-1)
+            features = features.reshape(features.shape[0], -1)
         return features
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:

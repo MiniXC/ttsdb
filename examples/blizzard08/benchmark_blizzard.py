@@ -31,7 +31,6 @@ benchmarks = [
     "whisper",
     "mpm",
     "pitch",
-    "xvector",
     "wespeaker",
     "hubert_token",
     "allosaurus",
@@ -47,13 +46,14 @@ datasets = [
 ]
 
 with importlib.resources.path("ttsdb", "data") as dp:
-    kaldi_test_ds = TarDataset(dp / "reference" / "speech_blizzard2008.tar.gz")
+    test_ds = TarDataset(dp / "reference" / "speech_blizzard2008.tar.gz", single_speaker=True)
 
 benchmark_suite = BenchmarkSuite(
     datasets, 
     benchmarks=benchmarks,
     write_to_file="results.csv", 
-    kaldi={"verbose": True, "test_set": kaldi_test_ds},
+    kaldi={"verbose": True, "test_set": test_ds},
+    hubert_token={"cluster_dataset": test_ds},
 )
 
 df = benchmark_suite.run()
@@ -116,6 +116,16 @@ X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
 X = X.drop("dataset", axis=1)
+# normalize the data per column
+
+def normalize_min_max(values):
+  min_val = values.min()
+  max_val = values.max()
+  vals = (values - min_val) / (max_val - min_val)
+  return vals
+
+X = X.apply(normalize_min_max, axis=0)
+
 y = df[df["benchmark_name"] == "gt_mos"]
 y = y.sort_values("dataset")
 y = y.reset_index()

@@ -13,7 +13,7 @@ from ttsdb.util.dataset import Dataset, TarDataset
 from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
 
 with importlib.resources.path("ttsdb", "data") as dp:
-    TEST_DS = TarDataset(dp / "libritts_test.tar.gz")
+    TEST_DS = TarDataset(dp / "libritts_test.tar.gz").sample(100)
 
 class HubertTokenBenchmark(Benchmark):
     """
@@ -23,13 +23,13 @@ class HubertTokenBenchmark(Benchmark):
     def __init__(
         self,
         hubert_model: str = "facebook/hubert-base-ls960",
-        hubert_layer: Union[int, str] = 8, 
+        hubert_layer: Union[int, str] = 7, 
         cluster_num: int = 100,
         cluster_seed: int = 42,
         cluster_dataset: Dataset = TEST_DS,
     ):
         super().__init__(
-            name="HubertTokens",
+            name="HubertToken",
             category=BenchmarkCategory.OVERALL,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="Hubert hidden states.",
@@ -50,7 +50,7 @@ class HubertTokenBenchmark(Benchmark):
         """
         Create clusters for the Hubert benchmark.
         """
-        cache_id = hash_md5(self.__cache__())
+        cache_id = hash_md5(hash(self))
         if check_cache(cache_id):
             cluster_centres = load_cache(cache_id)
             kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed)
@@ -90,14 +90,7 @@ class HubertTokenBenchmark(Benchmark):
         ).input_values
         with torch.no_grad():
             features = self.model(input_values, output_hidden_states=True).hidden_states
-        if isinstance(self.model_layer, int):
-            features = features[self.model_layer].detach().cpu().numpy()[0]
-        else:
-            layer_num = features.shape[0]
-            features_new = []
-            for i in range(layer_num):
-                features_new.append(features[i].detach().cpu().numpy()[0])
-            features = np.concatenate(features_new, axis=0)
+        features = features[self.model_layer].detach().cpu().numpy()[0]
         return features
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:

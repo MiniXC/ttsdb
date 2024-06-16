@@ -215,10 +215,11 @@ class KaldiBenchmark(Benchmark):
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         if hasattr(dataset, "is_noise_dataset") and dataset.is_noise_dataset:
-            return np.ones(100) * 100
+            return np.ones(100)
         self.decode_cpus = self.cpus
         if dataset.single_speaker:
             self.cpus = 1
+            self.decode_cpus = 1
         egs_path = self.egs_path
         local_data_path = self.data_path
         train_set = self.dataset_to_kaldi(dataset, egs_path, local_data_path)
