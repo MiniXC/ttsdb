@@ -19,7 +19,9 @@ from ttsdb.benchmarks.intelligibility.whisper_wer import WhisperWERBenchmark
 from ttsdb.benchmarks.phonetics.allosaurus import AllosaurusBenchmark
 from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
+from ttsdb.benchmarks.prosody.hubert_token import HubertTokenBenchmark
 from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
+from ttsdb.benchmarks.speaker.xvector import XVectorBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.util.dataset import Dataset, TarDataset
 
@@ -34,7 +36,9 @@ benchmark_dict = {
     "whisper": WhisperWERBenchmark,
     "mpm": MPMBenchmark,
     "pitch": PitchBenchmark,
+    "xvector": XVectorBenchmark,
     "wespeaker": WeSpeakerBenchmark,
+    "hubert_token": HubertTokenBenchmark,
     "allosaurus": AllosaurusBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
@@ -42,17 +46,19 @@ benchmark_dict = {
 }
 
 DEFAULT_BENCHMARKS = [
-    "kaldi",
     "mfcc",
     "hubert",
     "w2v2",
     "whisper",
     "mpm",
     "pitch",
+    "xvector",
     "wespeaker",
+    "hubert_token",
     "allosaurus",
     "voicefixer",
     "wada_snr",
+    "kaldi",
 ]
 
 with importlib.resources.path("ttsdb", "data") as data_path:

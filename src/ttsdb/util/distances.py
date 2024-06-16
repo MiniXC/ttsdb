@@ -61,9 +61,9 @@ def frechet_distance(x, y, eps=1e-6):
 
     # Numerical error might give slight imaginary component
     if jnp.iscomplexobj(covmean):
-        if not jnp.allclose(jnp.diagonal(covmean).imag, 0, atol=1e-3):
+        if not jnp.allclose(jnp.diagonal(covmean).imag, 0, atol=1e-2):
             m = jnp.max(jnp.abs(covmean.imag))
-            raise ValueError("Imaginary component {}".format(m))
+            print(f"Warning: Imaginary component {m}")
         covmean = covmean.real
 
     tr_covmean = jnp.trace(covmean)

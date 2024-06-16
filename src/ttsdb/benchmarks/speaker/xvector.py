@@ -13,7 +13,7 @@ from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDi
 from ttsdb.util.dataset import Dataset
 
 
-class WeSpeakerBenchmark(Benchmark):
+class XVectorBenchmark(Benchmark):
     """
     Benchmark class for the WeSpeaker benchmark.
     """
@@ -24,14 +24,14 @@ class WeSpeakerBenchmark(Benchmark):
         window_step: float = 0.5,
     ):
         super().__init__(
-            name="WeSpeaker",
+            name="XVector",
             category=BenchmarkCategory.SPEAKER,
             dimension=BenchmarkDimension.N_DIMENSIONAL,
-            description="The speaker embeddings using WeSpeaker.",
+            description="The speaker embeddings using XVector.",
             window_duration=window_duration,
             window_step=window_step,
         )
-        self.model = Model.from_pretrained("pyannote/wespeaker-voxceleb-resnet34-LM")
+        self.model = Model.from_pretrained("pyannote/embedding", use_auth_token=os.getenv("HUGGINGFACE_TOKEN"))
         self.inference = Inference(self.model, window="sliding", duration=window_duration, step=window_step)
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:

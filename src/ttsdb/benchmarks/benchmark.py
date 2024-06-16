@@ -143,6 +143,15 @@ class Benchmark(ABC):
         dataset_scores = np.array(dataset_scores)
 
         noise_score = np.min(noise_scores)
-        scores = 100 * (1 - dataset_scores / noise_score)
-        confidence_interval = 1.96 * np.std(scores) / np.sqrt(len(scores))
-        return np.max(scores), confidence_interval
+        dataset_score = np.min(dataset_scores)
+        combined_score = dataset_score + noise_score
+        score = (noise_score / combined_score) * 100
+        noise_scores = np.sort(noise_scores)
+        noise_scores = noise_scores[:len(dataset_scores)]
+        confidence_interval = (
+            np.std(noise_scores / (dataset_scores + noise_scores)) 
+            * 1.96 
+            / np.sqrt(len(noise_scores)) 
+            * 100
+        )
+        return score, confidence_interval

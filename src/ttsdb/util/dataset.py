@@ -122,6 +122,7 @@ class DirectoryDataset(Dataset):
         if audio.shape[0] == 0:
             print(f"Empty audio file: {wav}, padding with zeros.")
             audio = np.zeros(16000)
+        audio = audio / (np.max(np.abs(audio)) + 1e-6)
         return audio, text, self.speakers[idx]
 
     def __hash__(self) -> int:

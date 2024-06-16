@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 import torch
 from transformers import Wav2Vec2Processor, HubertModel
@@ -16,7 +18,7 @@ class HubertBenchmark(Benchmark):
     def __init__(
         self,
         hubert_model: str = "facebook/hubert-base-ls960",
-        hubert_layer: int = -1,
+        hubert_layer: Union[int, str] = "all", 
     ):
         super().__init__(
             name="Hubert",
@@ -50,7 +52,14 @@ class HubertBenchmark(Benchmark):
         ).input_values
         with torch.no_grad():
             features = self.model(input_values, output_hidden_states=True).hidden_states
-        features = features[self.model_layer].detach().cpu().numpy()[0]
+        if isinstance(self.model_layer, int):
+            features = features[self.model_layer].detach().cpu().numpy()[0]
+        else:
+            layer_num = features.shape[0]
+            features_new = []
+            for i in range(layer_num):
+                features_new.append(features[i].detach().cpu().numpy()[0])
+            features = np.concatenate(features_new, axis=0)
         return features
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:

@@ -48,6 +48,7 @@ class KaldiBenchmark(Benchmark):
             description="Kaldi WER.",
             kaldi_path=kaldi_path,
         )
+        self.cpus = CPUS
         self.kaldi_path = kaldi_path
         self.egs_path = Path(self.kaldi_path) / "egs/librispeech/s5"
         self.data_path = CACHE_DIR / "kaldi_data"
@@ -56,7 +57,6 @@ class KaldiBenchmark(Benchmark):
         # test kali installation
         install_kaldi(kaldi_path, self.verbose)
         self.test_set = self.dataset_to_kaldi(test_set, self.egs_path, self.data_path)
-        self.cpus = CPUS
 
     def dataset_to_kaldi(
         self, dataset: Dataset, egs_path: Path, data_path: Path
