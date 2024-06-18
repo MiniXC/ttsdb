@@ -55,9 +55,9 @@ class PESQBenchmark(Benchmark):
         sr_ref = self.reference_dataset.sample_rate
         for (wav, txt), (wav_ref, txt_ref) in zip(wavs, wavs_ref):
             if sr != self.sample_rate:
-                wav = librosa.resample(wav, sr, self.sample_rate)
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sample_rate)
             if sr_ref != self.sample_rate:
-                wav_ref = librosa.resample(wav_ref, sr_ref, self.sample_rate)
+                wav_ref = librosa.resample(wav_ref, orig_sr=sr_ref, target_sr=self.sample_rate)
             if txt != txt_ref:
                 raise ValueError(f"Text mismatch between {txt} and {txt_ref}")
             score = pesq(self.sample_rate, wav_ref, wav, "wb")

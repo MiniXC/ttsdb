@@ -1,0 +1,9 @@
+dataset,score
+natural16,4.39
+tacotron_wn,3.69
+fastpitch_wn,3.65
+tacotron_wg,3.44
+fastpitch_wg,3.3
+K0,2.62
+N0,2.0
+C0,1.96

@@ -102,9 +102,13 @@ for b in df["benchmark_name"].unique():
     # sort both dataframes by dataset name
     mosdf = mosdf.sort_values("dataset")
     bdf = bdf.sort_values("dataset")
+    # remove "A" dataset
     assert (mosdf["dataset"].values == bdf["dataset"].values).all()
     if b == "gt_mos":
         continue
+    # normalize the data
+    bdf_score = bdf["score"]
+    bdf["score"] = (bdf_score - bdf_score.min()) / (bdf_score.max() - bdf_score.min())
     corr, p = pearsonr(mosdf["score"], bdf["score"])
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
@@ -115,6 +119,7 @@ X = X.pivot(index="dataset", columns="benchmark_name", values="score")
 X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
+X = X.drop("Kaldi", axis=1)
 X = X.drop("dataset", axis=1)
 # normalize the data per column
 
@@ -131,9 +136,18 @@ y = y.sort_values("dataset")
 y = y.reset_index()
 y = y["score"]
 
+# mean
+X_mean = X.apply(np.mean, axis=1)
+# calculate the correlation
+corr, p = pearsonr(X_mean, y)
+
+print(f"mean: {corr:.3f} ({p:.3f})")
+
 X = sm.add_constant(X)
 model = sm.OLS(y, X).fit()
 print(model.summary())
+# save model
+model.save("model.pickle")
 corrs.append(("ttsdb", model.rsquared, model.f_pvalue))
 
 # save the correlations

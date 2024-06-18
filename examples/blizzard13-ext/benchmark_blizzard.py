@@ -12,12 +12,18 @@ from ttsdb.util.dataset import DirectoryDataset, TarDataset
 from ttsdb.benchmarks.external.pesq import PESQBenchmark
 from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.external.utmos import UTMOSBenchmark
+from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.benchmarks.benchmark import Benchmark
 
 # Extract the Blizzard 2008 dataset
 if not Path("processed_data").exists():
     with tarfile.open("processed_data.tar.gz", "r:gz") as tar:
-        tar.extractall()
+        Path("processed_data").mkdir()
+        tar.extractall("processed_data")
+        # rename 1-letter directories to 2-letter directories
+        for x in Path("processed_data").iterdir():
+            if len(x.name) == 1:
+                x.rename(Path("processed_data") / f"{x.name}0")
 
 # remove files starting with ._
 for x in Path("processed_data").rglob("._*"):
@@ -42,7 +48,7 @@ benchmarks = [
 datasets = [
     DirectoryDataset(Path(x), single_speaker=True)
     for x in Path("processed_data").iterdir()
-    if len(x.name) == 1 and len(list(x.rglob("*.wav"))) > 0
+    if len(list(x.rglob("*.wav"))) > 0
 ]
 
 with importlib.resources.path("ttsdb", "data") as dp:
@@ -76,12 +82,14 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
     df.to_csv(f"{benchmark.name.lower()}.csv", index=False)
     return df
 
-pesq_df = run_external_benchmark(PESQBenchmark(datasets[0]), datasets)
+pesq_df = run_external_benchmark(PESQBenchmark(datasets[5]), datasets)
 pesq_df["benchmark_name"] = "pesq"
 wvmos_df = run_external_benchmark(WVMOSBenchmark(), datasets)
 wvmos_df["benchmark_name"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
 utmos_df["benchmark_name"] = "utmos"
+kaldi_df = run_external_benchmark(KaldiBenchmark(verbose=True, test_set=test_ds), datasets)
+kaldi_df["benchmark_name"] = "kaldi"
 
 gt_mos_df = pd.read_csv("gt_mos.csv")
 gt_mos_df["benchmark_name"] = "gt_mos"
@@ -91,8 +99,9 @@ df["benchmark_type"] = "ttsdb"
 pesq_df["benchmark_type"] = "external"
 wvmos_df["benchmark_type"] = "external"
 utmos_df["benchmark_type"] = "external"
+kaldi_df["benchmark_type"] = "external"
 gt_mos_df["benchmark_type"] = "mos"
-df = pd.concat([df, pesq_df, wvmos_df, utmos_df, gt_mos_df])
+df = pd.concat([df, pesq_df, wvmos_df, utmos_df, gt_mos_df, kaldi_df])
 
 # compute the correlations
 corrs = []
@@ -105,6 +114,8 @@ for b in df["benchmark_name"].unique():
     assert (mosdf["dataset"].values == bdf["dataset"].values).all()
     if b == "gt_mos":
         continue
+    bdf_score = bdf["score"]
+    bdf["score"] = (bdf_score - bdf_score.min()) / (bdf_score.max() - bdf_score.min())
     corr, p = pearsonr(mosdf["score"], bdf["score"])
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
@@ -115,8 +126,9 @@ X = X.pivot(index="dataset", columns="benchmark_name", values="score")
 X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
+# remove "Kaldi" columns
+X = X.drop("Kaldi", axis=1)
 X = X.drop("dataset", axis=1)
-# normalize the data per column
 
 def normalize_min_max(values):
   min_val = values.min()
@@ -131,10 +143,28 @@ y = y.sort_values("dataset")
 y = y.reset_index()
 y = y["score"]
 
+from scipy.stats import hmean
+
+X_mean = X.apply(hmean, axis=1)
+# get correlation with harmonic mean
+corr, p = pearsonr(y, X_mean)
+
+print(f"mean: {corr:.3f} ({p:.3f})")
+
+# # load OLS model from ../blizzard08
+# model = sm.load("../blizzard08/model.pickle")
+# # predict the values
+# X = sm.add_constant(X)
+# y_pred = model.predict(X)
+
+# compute the correlation
+# corr, p = pearsonr(y, y_pred)
+# corrs.append(("ttsdb", corr, p))
+
+# fit new OLS model
 X = sm.add_constant(X)
 model = sm.OLS(y, X).fit()
 print(model.summary())
-corrs.append(("ttsdb", model.rsquared, model.f_pvalue))
 
 # save the correlations
 corrs_df = pd.DataFrame(corrs, columns=["benchmark", "corr", "p"])

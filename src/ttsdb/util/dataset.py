@@ -131,6 +131,7 @@ class DirectoryDataset(Dataset):
         h.update(str(self.root_dir).encode())
         h.update(str(self.sample_params["n"]).encode())
         h.update(str(self.sample_params["seed"]).encode())
+        h.update(str(self.single_speaker).encode())
         return int(h.hexdigest(), 16)
 
     def __repr__(self) -> str:
@@ -162,7 +163,7 @@ class TarDataset(Dataset):
                         speaker_member = member.name
                     speakers.append(speaker_member.split("_")[0])
                 else:
-                    speakers.append("single_speaker")
+                    speakers.append("single-speaker")
                 wav_file = Path(member.name)
                 wavs.append(wav_file)
                 text_file = Path(member.name).with_suffix(".txt")
@@ -202,6 +203,7 @@ class TarDataset(Dataset):
         h.update(str(self.root_tar).encode())
         h.update(str(self.sample_params["n"]).encode())
         h.update(str(self.sample_params["seed"]).encode())
+        h.update(str(self.single_speaker).encode())
         return int(h.hexdigest(), 16)
 
     def __repr__(self) -> str:

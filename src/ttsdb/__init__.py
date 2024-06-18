@@ -21,7 +21,6 @@ from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.prosody.hubert_token import HubertTokenBenchmark
 from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
-from ttsdb.benchmarks.speaker.xvector import XVectorBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.util.dataset import Dataset, TarDataset
 

@@ -177,12 +177,15 @@ class KaldiBenchmark(Benchmark):
         sub_err = int(re.findall(r"(\d+)\s+sub", best_wer)[0])
         with open(scoring_path / "wer_details" / "wer_bootci", "r") as bootci:
             bootci = bootci.read()
-        lower_wer, upper_wer = [
-            round(float(c), 2)
-            for c in re.findall(r"Conf Interval \[ (\d+\.\d+), (\d+\.\d+) \]", bootci)[
-                0
+        try:
+            lower_wer, upper_wer = [
+                round(float(c), 2)
+                for c in re.findall(r"Conf Interval \[ (\d+\.\d+), (\d+\.\d+) \]", bootci)[
+                    0
+                ]
             ]
-        ]
+        except:
+            lower_wer, upper_wer = wer, wer
         ci = round((upper_wer - lower_wer) / 2, 2)
         if self.verbose:
             print(
