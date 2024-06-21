@@ -62,6 +62,7 @@ with importlib.resources.path("ttsdb", "data") as data_path:
         data_path / "reference/speech_blizzard2013.tar.gz",
         data_path / "reference/speech_common_voice.tar.gz",
         data_path / "reference/speech_libritts_test.tar.gz",
+        data_path / "reference/speech_libritts_test_r.tar.gz",
         data_path / "reference/speech_lj_speech.tar.gz",
         data_path / "reference/speech_vctk.tar.gz",
     ]

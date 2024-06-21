@@ -142,6 +142,12 @@ class Benchmark(ABC):
             dataset_scores.append(score)
         dataset_scores = np.array(dataset_scores)
 
+        closest_noise_idx = np.argmin(noise_scores)
+        closest_dataset_idx = np.argmin(dataset_scores)
+
+        print(f"Closest noise dataset: {noise_datasets[closest_noise_idx].name}")
+        print(f"Closest reference dataset: {reference_datasets[closest_dataset_idx].name}")
+
         noise_score = np.min(noise_scores)
         dataset_score = np.min(dataset_scores)
         combined_score = dataset_score + noise_score
