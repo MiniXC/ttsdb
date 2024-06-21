@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDimension
 from ttsdb.util.dataset import Dataset
@@ -189,13 +190,19 @@ class WadaSNRBenchmark(Benchmark):
 
     def __init__(
         self,
+        window_size: int = 3,
+        step_size: int = 1,
     ):
         super().__init__(
             name="WadaSNR",
             category=BenchmarkCategory.ENVIRONMENT,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="The Signal-to-Noise Ratio (SNR) of Wada SNR.",
+            window_size=window_size,
+            step_size=step_size,
         )
+        self.window_size = window_size
+        self.step_size = step_size
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
@@ -208,9 +215,16 @@ class WadaSNRBenchmark(Benchmark):
             float: The Signal-to-Noise Ratio (SNR) distribution of the Wada SNR model.
         """
         snrs = []
-        for wav, _, _ in dataset:
-            snr = wada_snr(wav)
-            if np.isnan(snr):
-                snr = 0
-            snrs.append(snr)
+        for wav, _, _ in tqdm(dataset, desc=f"computing snr for {self.name}"):
+            # calculate for each 3 seconds, with a 1 second step
+            win = self.window_size * dataset.sample_rate
+            step = self.step_size * dataset.sample_rate
+            while len(wav) > win:
+                snr = wada_snr(wav[:win])
+                if np.isnan(snr):
+                    snr = 0
+                snrs.append(snr)
+                wav = wav[step:]
+                if len(wav) == 0:
+                    break
         return np.array(snrs)

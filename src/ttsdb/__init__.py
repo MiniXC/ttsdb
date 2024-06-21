@@ -105,7 +105,7 @@ class BenchmarkSuite:
         self.datasets = datasets
         self.datasets = sorted(self.datasets, key=lambda x: x.name)
         self.database = pd.DataFrame(
-            columns=["benchmark_name", "benchmark_category", "dataset", "score", "ci", "time_taken"]
+            columns=["benchmark_name", "benchmark_category", "dataset", "score", "ci", "time_taken", "noise_dataset", "reference_dataset"]
         )
         self.print_results = print_results
         self.skip_errors = skip_errors
@@ -113,7 +113,8 @@ class BenchmarkSuite:
         self.reference_datasets = reference_datasets
         self.write_to_file = write_to_file
         if Path(write_to_file).exists():
-            self.database = pd.read_csv(write_to_file)
+            self.database = pd.read_csv(write_to_file, index_col=0)
+            self.database = self.database.reset_index()
 
     def run(self) -> pd.DataFrame:
         for benchmark in self.benchmark_objects:
@@ -148,6 +149,8 @@ class BenchmarkSuite:
                     "score": [score[0]],
                     "ci": [score[1]],
                     "time_taken": [time_taken],
+                    "noise_dataset": [score[2][0]],
+                    "reference_dataset": [score[2][1]],
                 }
                 if self.print_results:
                     print(result)
@@ -157,8 +160,11 @@ class BenchmarkSuite:
                         pd.DataFrame(
                             result
                         ),
-                    ]
+                    ],
+                    ignore_index=True,
                 )
                 if self.write_to_file is not None:
+                    self.database["score"] = self.database["score"].astype(float)
+                    self.database = self.database.sort_values(["benchmark_category", "benchmark_name", "score"], ascending=[True, True, False])
                     self.database.to_csv(self.write_to_file, index=False)
         return self.database

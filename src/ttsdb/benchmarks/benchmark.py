@@ -152,4 +152,4 @@ class Benchmark(ABC):
         combined_score = dataset_score + noise_score
         score = (noise_score / combined_score) * 100
         # TODO: compute confidence interval
-        return score, 1.0
+        return score, 1.0, (noise_datasets[closest_noise_idx].name, reference_datasets[closest_dataset_idx].name)

@@ -103,8 +103,9 @@ df = pd.concat([df, wvmos_df, utmos_df, gt_mos_df])
 # gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("xtts")]
 
 # remove VoiceFixer and WadaSNR benchmarks
-# df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
-# df = df[~df["benchmark_name"].str.contains("WadaSNR")]
+df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
+df = df[~df["benchmark_name"].str.contains("WadaSNR")]
+df = df[~df["benchmark_name"].str.contains("MFCC")]
 
 # compute the correlations
 corrs = []
@@ -124,7 +125,7 @@ def normalize_min_max(values):
 
 # apply to all columns except dataset
 x_ds = X["dataset"]
-X = X.drop("dataset", axis=1).apply(normalize_min_max)
+# X = X.drop("dataset", axis=1).apply(normalize_min_max)
 X["dataset"] = x_ds
 
 # print systems ordered by harmonic mean
@@ -146,7 +147,7 @@ y = y["score"]
 X_mean = X.apply(np.mean, axis=1)
 # get correlation with harmonic mean
 print(y.shape, X_mean.shape)
-corr, p = pearsonr(y, X_mean)
+corr, p = spearmanr(y, X_mean)
 # print systems ordered by harmonic mean
 print(f"mean: {corr:.3f} ({p:.3f})")
 
@@ -172,11 +173,11 @@ for b in df["benchmark_name"].unique():
         continue
     bdf_score = bdf["score"]
     bdf["score"] = (bdf_score - bdf_score.min()) / (bdf_score.max() - bdf_score.min())
-    corr, p = pearsonr(mosdf["score"], bdf["score"])
+    corr, p = spearmanr(mosdf["score"], bdf["score"])
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
     # get correlation with harmonic mean
-    hmean_corr, hmean_p = pearsonr(bdf["score"], hmean_score)
+    hmean_corr, hmean_p = spearmanr(bdf["score"], hmean_score)
     # print(f"{b} harmonic mean: {hmean_corr:.3f} ({hmean_p:.3f})")
 
 # save the correlations

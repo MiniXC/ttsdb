@@ -45,12 +45,10 @@ class VoiceFixerBenchmark(Benchmark):
                     wav, orig_sr=dataset.sample_rate, target_sr=16000
                 )
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
-                # take the 16000 samples from the middle
-                num_secs = 2
-                num_samples = num_secs * 16000
-                if len(wav) > num_samples:
-                    wav = wav[int(len(wav) / 2) - num_samples // 2 : int(len(wav) / 2) + num_samples // 2]
-                sf.write(f.name, wav, num_samples)
+                # take random 2 seconds
+                start = np.random.randint(0, len(wav) - 32000)
+                wav = wav[start : start + 32000]
+                sf.write(f.name, wav, 16000)
                 with tempfile.NamedTemporaryFile(suffix=".wav") as f_out:
                     self.model.restore(f.name, f_out.name)
                     wav_out, _ = librosa.load(f_out.name, sr=16000)
@@ -63,6 +61,11 @@ class VoiceFixerBenchmark(Benchmark):
             elif mel_out.shape[0] < mel.shape[0]:
                 mel = mel[: mel_out.shape[0]]
             mel_diff = mel - mel_out
+            # convert back to wav
+            mel_diff = self.synthesiser.mel_to_wav(mel_diff.T)
+            # save to temp.wav and raise
+            sf.write("temp.wav", mel_diff, 16000)
+            raise
             # check if there is any nan
             if np.isnan(mel_diff).any():
                 continue

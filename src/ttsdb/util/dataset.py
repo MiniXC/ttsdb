@@ -196,6 +196,9 @@ class TarDataset(Dataset):
         if audio.shape[0] == 0:
             print(f"Empty audio file: {wav}, padding with zeros.")
             audio = np.zeros(16000)
+        else:
+            # remove silence at beginning and end
+            audio, _ = librosa.effects.trim(audio)
         return audio, text, self.speakers[idx]
 
     def __hash__(self) -> int:

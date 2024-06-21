@@ -14,13 +14,17 @@ def wasserstein_distance(x, y):
     """
     See: https://en.wikipedia.org/wiki/Wasserstein_metric
     """
-    if x.shape[0] != y.shape[0]:
-        # sample from the larger distribution
-        if x.shape[0] > y.shape[0]:
-            x = x[np.random.choice(x.shape[0], y.shape[0], replace=False)]
-        else:
-            y = y[np.random.choice(y.shape[0], x.shape[0], replace=False)]
-    return jnp.mean((jnp.sort(x) - jnp.sort(y)) ** 2) ** 0.5
+    means = []
+    np.random.seed(0)
+    for _ in range(10):
+        if x.shape[0] != y.shape[0]:
+            # sample from the larger distribution
+            if x.shape[0] > y.shape[0]:
+                x = x[np.random.choice(x.shape[0], y.shape[0], replace=False)]
+            else:
+                y = y[np.random.choice(y.shape[0], x.shape[0], replace=False)]
+        means.append(jnp.mean((jnp.sort(x) - jnp.sort(y)) ** 2) ** 0.5)
+    return np.mean(means)
 
 
 def frechet_distance(x, y, eps=1e-6):
