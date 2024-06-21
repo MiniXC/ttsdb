@@ -145,6 +145,7 @@ y = y["score"]
 
 X_mean = X.apply(np.mean, axis=1)
 # get correlation with harmonic mean
+print(y.shape, X_mean.shape)
 corr, p = pearsonr(y, X_mean)
 # print systems ordered by harmonic mean
 print(f"mean: {corr:.3f} ({p:.3f})")

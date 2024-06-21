@@ -130,10 +130,9 @@ class Benchmark(ABC):
         Compute the score of the benchmark on a dataset.
         """
         noise_scores = []
-        for ref_ds in reference_datasets:
-            for noise_ds in noise_datasets:
-                score = self.compute_distance(ref_ds, noise_ds)
-                noise_scores.append(score)
+        for noise_ds in noise_datasets:
+            score = self.compute_distance(noise_ds, dataset)
+            noise_scores.append(score)
         noise_scores = np.array(noise_scores)
 
         dataset_scores = []
@@ -152,12 +151,5 @@ class Benchmark(ABC):
         dataset_score = np.min(dataset_scores)
         combined_score = dataset_score + noise_score
         score = (noise_score / combined_score) * 100
-        noise_scores = np.sort(noise_scores)
-        noise_scores = noise_scores[:len(dataset_scores)]
-        confidence_interval = (
-            np.std(noise_scores / (dataset_scores + noise_scores)) 
-            * 1.96 
-            / np.sqrt(len(noise_scores)) 
-            * 100
-        )
-        return score, confidence_interval
+        # TODO: compute confidence interval
+        return score, 1.0
