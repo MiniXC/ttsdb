@@ -1,0 +1,11 @@
+dataset,score
+gpt_sovits.tar.gz,0.9397450036472246
+melotts.tar.gz,0.9700593971424435
+metavoice.tar.gz,0.96411642979604
+openvoice.tar.gz,0.921136009928599
+openvoice_v2.tar.gz,0.9489039338589914
+parler.tar.gz,0.9168061501047433
+styletts_2.tar.gz,0.9138100719226897
+vokan.tar.gz,0.9122885445373013
+whisper_speech.tar.gz,0.9744292831788034
+xtts_v2.tar.gz,0.8801788989774796

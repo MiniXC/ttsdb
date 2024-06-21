@@ -94,6 +94,10 @@ class MPMBenchmark(Benchmark):
             pitch = torch.bucketize(pitch, self.bins)
             energy = torch.bucketize(energy, self.bins)
             vad = torch.bucketize(vad, torch.linspace(0, 1, 2))
+            min_len = min(len(pitch), len(energy), len(vad))
+            pitch = pitch[:min_len]
+            energy = energy[:min_len]
+            vad = vad[:min_len]
             model_input = torch.stack([pitch, energy, vad]).unsqueeze(0)
             with torch.no_grad():
                 reprs = self.model(model_input, return_layer=self.mpm_layer)[

@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from scipy.stats import pearsonr
 import statsmodels.api as sm
+from patsy import dmatrices
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 from ttsdb import BenchmarkSuite
 from ttsdb.util.dataset import DirectoryDataset, TarDataset
@@ -13,6 +15,7 @@ from ttsdb.benchmarks.external.pesq import PESQBenchmark
 from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.external.utmos import UTMOSBenchmark
 from ttsdb.benchmarks.benchmark import Benchmark
+
 
 # Extract the Blizzard 2008 dataset
 if not Path("processed_data").exists():
@@ -36,7 +39,6 @@ benchmarks = [
     "allosaurus",
     "voicefixer",
     "wada_snr",
-    "kaldi",
 ]
 
 datasets = [
@@ -51,8 +53,7 @@ with importlib.resources.path("ttsdb", "data") as dp:
 benchmark_suite = BenchmarkSuite(
     datasets, 
     benchmarks=benchmarks,
-    write_to_file="results.csv", 
-    kaldi={"verbose": True, "test_set": test_ds},
+    write_to_file="results.csv",
     hubert_token={"cluster_dataset": test_ds},
 )
 
@@ -113,13 +114,35 @@ for b in df["benchmark_name"].unique():
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
 
+
+dfx = df[df["benchmark_type"] == "ttsdb"]
+dfx = dfx.pivot(index="dataset", columns="benchmark_name", values="score")
+dfx = dfx.sort_values("dataset")
+# make columns lowercase and replace space with underscore
+dfx.columns = [x.lower().replace(" ", "_") for x in dfx.columns]
+cols = '+'.join(dfx.columns)
+y = df[df["benchmark_name"] == "gt_mos"]
+y = y.sort_values("dataset")
+dfx["gt_mos"] = y["score"].values
+
+y, X = dmatrices(f"gt_mos ~ {cols}", data=dfx, return_type='dataframe')
+
+#create DataFrame to hold VIF values
+vif_df = pd.DataFrame()
+vif_df['variable'] = X.columns
+
+#calculate VIF for each predictor variable 
+vif_df['VIF'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+
+#view VIF for each predictor variable 
+print(vif_df)
+
 # compute the correlations with statsmodels
 X = df[df["benchmark_type"] == "ttsdb"]
 X = X.pivot(index="dataset", columns="benchmark_name", values="score")
 X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
-X = X.drop("Kaldi", axis=1)
 X = X.drop("dataset", axis=1)
 # normalize the data per column
 
@@ -143,12 +166,26 @@ corr, p = pearsonr(X_mean, y)
 
 print(f"mean: {corr:.3f} ({p:.3f})")
 
-X = sm.add_constant(X)
-model = sm.OLS(y, X).fit()
-print(model.summary())
+
+
+from sklearn.linear_model import Ridge
+
+# fit the model
+model = Ridge()
+model.fit(X, y)
+# set negative coefs to zero
+model.coef_[model.coef_ < 0] = 0
 # save model
-model.save("model.pickle")
-corrs.append(("ttsdb", model.rsquared, model.f_pvalue))
+import joblib
+joblib.dump(model, "ridge.joblib")
+# make predictions
+yhat = model.predict(X)
+# calculate the correlation
+corr, p = pearsonr(y, yhat)
+print(f"ridge: {corr:.3f} ({p:.3f})")
+corrs.append(("ridge", corr, p))
+print(model.coef_)
+
 
 # save the correlations
 corrs_df = pd.DataFrame(corrs, columns=["benchmark", "corr", "p"])

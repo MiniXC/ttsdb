@@ -42,7 +42,6 @@ benchmarks = [
     "allosaurus",
     "voicefixer",
     "wada_snr",
-    "kaldi",
 ]
 
 datasets = [
@@ -58,7 +57,6 @@ benchmark_suite = BenchmarkSuite(
     datasets, 
     benchmarks=benchmarks,
     write_to_file="results.csv", 
-    kaldi={"verbose": True, "test_set": test_ds},
     hubert_token={"cluster_dataset": test_ds},
 )
 
@@ -127,7 +125,6 @@ X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
 # remove "Kaldi" columns
-X = X.drop("Kaldi", axis=1)
 X = X.drop("dataset", axis=1)
 
 def normalize_min_max(values):
@@ -151,20 +148,18 @@ corr, p = pearsonr(y, X_mean)
 
 print(f"mean: {corr:.3f} ({p:.3f})")
 
-# # load OLS model from ../blizzard08
-# model = sm.load("../blizzard08/model.pickle")
-# # predict the values
-# X = sm.add_constant(X)
-# y_pred = model.predict(X)
+from sklearn.linear_model import Ridge
 
-# compute the correlation
-# corr, p = pearsonr(y, y_pred)
-# corrs.append(("ttsdb", corr, p))
-
-# fit new OLS model
-X = sm.add_constant(X)
-model = sm.OLS(y, X).fit()
-print(model.summary())
+# load model
+import joblib
+model = joblib.load("../blizzard08/ridge.joblib")
+# make predictions
+yhat = model.predict(X)
+# calculate the correlation
+corr, p = pearsonr(y, yhat)
+print(f"ridge: {corr:.3f} ({p:.3f})")
+corrs.append(("ridge", corr, p))
+print(model.coef_)
 
 # save the correlations
 corrs_df = pd.DataFrame(corrs, columns=["benchmark", "corr", "p"])

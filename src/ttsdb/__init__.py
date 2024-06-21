@@ -40,7 +40,6 @@ benchmark_dict = {
     "allosaurus": AllosaurusBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
-    "kaldi": KaldiBenchmark,
 }
 
 DEFAULT_BENCHMARKS = [
@@ -55,7 +54,6 @@ DEFAULT_BENCHMARKS = [
     "allosaurus",
     "voicefixer",
     "wada_snr",
-    "kaldi",
 ]
 
 with importlib.resources.path("ttsdb", "data") as data_path:

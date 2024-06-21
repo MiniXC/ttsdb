@@ -73,7 +73,6 @@ class Benchmark(ABC):
         ds_hash = hash_md5(dataset)
         benchmark_hash = hash_md5(self)
         cache_name = f"benchmarks/{self.name}/{ds_hash}_{benchmark_hash}"
-        print(cache_name)
         if check_cache(cache_name):
             return load_cache(cache_name)
         distribution = self._get_distribution(dataset)

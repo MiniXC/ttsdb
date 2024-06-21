@@ -16,7 +16,8 @@ from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDi
 from ttsdb.util.dataset import TarDataset, Dataset
 from ttsdb.util.kaldi import run_command, run_commands, install_kaldi, KALDI_PATH
 
-CPUS = min(16, cpu_count())
+# CPUS = min(16, cpu_count())
+CPUS = 1
 
 with importlib.resources.path("ttsdb", "data") as dp:
     TEST_DS = TarDataset(dp / "libritts_test.tar.gz").sample(100)

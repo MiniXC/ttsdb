@@ -150,6 +150,7 @@ class TarDataset(Dataset):
         if root_tar is None:
             raise ValueError("root_tar must be provided.")
         self.root_tar = root_tar
+        self.root_dir = Path(root_tar).name
         self.tar = tarfile.open(root_tar)
         # we assume that the root directory contains
         # subdirectories for each speaker
