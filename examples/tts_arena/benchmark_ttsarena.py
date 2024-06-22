@@ -81,7 +81,7 @@ utmos_df["benchmark_type"] = "external"
 gt_mos_df["benchmark_type"] = "mos"
 df = pd.concat([df, wvmos_df, utmos_df, gt_mos_df])
 
-# remove meta and melo datasets (broken)
+# remove meta, melo and gpt datasets (broken)
 df = df[~df["dataset"].str.contains("meta")]
 gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("meta")]
 df = df[~df["dataset"].str.contains("melo")]
