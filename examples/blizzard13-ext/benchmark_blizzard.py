@@ -4,7 +4,7 @@ import importlib.resources
 
 import pandas as pd
 import numpy as np
-from scipy.stats import pearsonr
+from scipy.stats import spearmanr
 import statsmodels.api as sm
 
 from ttsdb import BenchmarkSuite
@@ -101,6 +101,11 @@ kaldi_df["benchmark_type"] = "external"
 gt_mos_df["benchmark_type"] = "mos"
 df = pd.concat([df, pesq_df, wvmos_df, utmos_df, gt_mos_df, kaldi_df])
 
+df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
+df = df[~df["benchmark_name"].str.contains("WadaSNR")]
+df = df[~df["benchmark_name"].str.contains("Allosaurus")]
+df = df[~df["benchmark_name"].str.contains("MFCC")]
+
 # compute the correlations
 corrs = []
 for b in df["benchmark_name"].unique():
@@ -114,13 +119,17 @@ for b in df["benchmark_name"].unique():
         continue
     bdf_score = bdf["score"]
     bdf["score"] = (bdf_score - bdf_score.min()) / (bdf_score.max() - bdf_score.min())
-    corr, p = pearsonr(mosdf["score"], bdf["score"])
+    corr, p = spearmanr(mosdf["score"], bdf["score"])
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
 
 # compute the correlations with statsmodels
 X = df[df["benchmark_type"] == "ttsdb"]
 X = X.pivot(index="dataset", columns="benchmark_name", values="score")
+X["WER"] = (X["Wav2Vec2 WER"] + X["Whisper WER"]) / 2
+X = X.drop(["Wav2Vec2 WER", "Whisper WER"], axis=1)
+X["Prosody"] = (X["Pitch"] + X["MPM"] + X["HubertToken"]) / 3
+X = X.drop(["Pitch", "MPM", "HubertToken"], axis=1)
 X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
@@ -133,7 +142,7 @@ def normalize_min_max(values):
   vals = (values - min_val) / (max_val - min_val)
   return vals
 
-X = X.apply(normalize_min_max, axis=0)
+# X = X.apply(normalize_min_max, axis=0)
 
 y = df[df["benchmark_name"] == "gt_mos"]
 y = y.sort_values("dataset")
@@ -144,22 +153,9 @@ from scipy.stats import hmean
 
 X_mean = X.apply(hmean, axis=1)
 # get correlation with harmonic mean
-corr, p = pearsonr(y, X_mean)
+corr, p = spearmanr(y, X_mean)
 
 print(f"mean: {corr:.3f} ({p:.3f})")
-
-from sklearn.linear_model import Ridge
-
-# load model
-import joblib
-model = joblib.load("../blizzard08/ridge.joblib")
-# make predictions
-yhat = model.predict(X)
-# calculate the correlation
-corr, p = pearsonr(y, yhat)
-print(f"ridge: {corr:.3f} ({p:.3f})")
-corrs.append(("ridge", corr, p))
-print(model.coef_)
 
 # save the correlations
 corrs_df = pd.DataFrame(corrs, columns=["benchmark", "corr", "p"])

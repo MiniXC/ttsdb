@@ -21,7 +21,6 @@ datasets = sorted(list(Path(".").rglob("*.tar.gz")))
 datasets = [TarDataset(x) for x in datasets]
 
 benchmarks = [
-    "mfcc",
     "hubert",
     "w2v2",
     "whisper",
@@ -29,24 +28,20 @@ benchmarks = [
     "pitch",
     "wespeaker",
     "hubert_token",
-    "allosaurus",
     "voicefixer",
     "wada_snr",
 ]
 
-with importlib.resources.path("ttsdb", "data") as dp:
-    test_ds = TarDataset(dp / "reference" / "speech_libritts_test.tar.gz", single_speaker=True)
-
 benchmark_suite = BenchmarkSuite(
     datasets, 
     benchmarks=benchmarks,
-    write_to_file="results.csv", 
-    hubert_token={"cluster_dataset": test_ds},
+    write_to_file="results.csv",
 )
 
-df = benchmark_suite.run()
+benchmark_suite.run()
+df = benchmark_suite.get_aggregated_results()
+print(df)
 
-# sort datasets
 datasets = sorted(datasets, key=lambda x: x.name)
 
 def run_external_benchmark(benchmark: Benchmark, datasets: list):
@@ -64,54 +59,44 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
     df.to_csv(f"{benchmark.name.lower()}.csv", index=False)
     return df
 
-# pesq_df = run_external_benchmark(PESQBenchmark(datasets[5]), datasets)
-# pesq_df["benchmark_name"] = "pesq"
 wvmos_df = run_external_benchmark(WVMOSBenchmark(), datasets)
-wvmos_df["benchmark_name"] = "wvmos"
+wvmos_df["benchmark_category"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
-utmos_df["benchmark_name"] = "utmos"
-# kaldi_df = run_external_benchmark(KaldiBenchmark(verbose=True, test_set=test_ds), datasets)
-# kaldi_df["benchmark_name"] = "kaldi"
+utmos_df["benchmark_category"] = "utmos"
 
 gt_mos_df = pd.read_csv("gt_mos.csv")
-gt_mos_df["benchmark_name"] = "gt_mos"
+gt_mos_df["benchmark_category"] = "gt_mos"
 # normalize the scores
 gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
-
+gt_mos_df["score"] = np.log10(gt_mos_df["score"]+1)
+gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
 
 # print systems ordered by score
 print(gt_mos_df.sort_values("score"))
 
 # merge the dataframes
 df["benchmark_type"] = "ttsdb"
-# pesq_df["benchmark_type"] = "external"
 wvmos_df["benchmark_type"] = "external"
 utmos_df["benchmark_type"] = "external"
-# kaldi_df["benchmark_type"] = "external"
 gt_mos_df["benchmark_type"] = "mos"
 df = pd.concat([df, wvmos_df, utmos_df, gt_mos_df])
 
-# remove parlertts and vokan
-# df = df[~df["dataset"].str.contains("gpt")]
-# gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("gpt")]
+# remove meta and melo datasets (broken)
 df = df[~df["dataset"].str.contains("meta")]
 gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("meta")]
 df = df[~df["dataset"].str.contains("melo")]
 gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("melo")]
-
-# remove VoiceFixer and WadaSNR benchmarks
-df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
-df = df[~df["benchmark_name"].str.contains("WadaSNR")]
-df = df[~df["benchmark_name"].str.contains("Allosaurus")]
+df = df[~df["dataset"].str.contains("gpt")]
+gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("gpt")]
 
 # compute the correlations
 corrs = []
 
 # compute the correlations with statsmodels
 X = df[df["benchmark_type"] == "ttsdb"]
-X = X.pivot(index="dataset", columns="benchmark_name", values="score")
+X = X.pivot(index="dataset", columns="benchmark_category", values="score")
+X = X.drop("ENVIRONMENT", axis=1)
 X = X.sort_values("dataset")
-# remove index
 X = X.reset_index()
 
 def normalize_min_max(values):
@@ -132,7 +117,7 @@ print(X_mean.sort_values("mean"))
 
 X = X.drop("dataset", axis=1)
 
-y = df[df["benchmark_name"] == "gt_mos"]
+y = df[df["benchmark_category"] == "gt_mos"]
 # remove parlertts and vokan
 y = y.sort_values("dataset")
 y = y.reset_index()
@@ -159,9 +144,9 @@ plt.xlabel("Ground truth elo")
 plt.ylabel("Harmonic mean of benchmark scores")
 plt.savefig("scatter.png")
 
-for b in df["benchmark_name"].unique():
-    bdf = df[df["benchmark_name"] == b]
-    mosdf = df[df["benchmark_name"] == "gt_mos"]
+for b in df["benchmark_category"].unique():
+    bdf = df[df["benchmark_category"] == b]
+    mosdf = df[df["benchmark_category"] == "gt_mos"]
     hmean_score = X_mean
     # sort both dataframes by dataset name
     mosdf = mosdf.sort_values("dataset")

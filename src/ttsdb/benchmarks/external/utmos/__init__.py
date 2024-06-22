@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import requests
 import numpy as np
+from tqdm import tqdm
 
 import ttsdb.benchmarks.external.utmos.lightning_module
 from ttsdb.benchmarks.external.utmos.change_sample_rate import ChangeSampleRate
@@ -51,7 +52,7 @@ class UTMOSBenchmark(Benchmark):
             np.ndarray: The distribution of the UTMOS benchmark.
         """
         scores = []
-        for wav, _, _ in dataset:
+        for wav, _, _ in tqdm(dataset, desc=f"computing scores for {self.name}"):
             # batch = torch.tensor(wav).unsqueeze(0).repeat(10, 1, 1)
             csr = ChangeSampleRate(dataset.sample_rate, 16000)
             out_wavs = csr(torch.tensor(wav).unsqueeze(0))

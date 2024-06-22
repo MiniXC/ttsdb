@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 import importlib.resources
 
 import numpy as np
@@ -13,7 +13,14 @@ from ttsdb.util.dataset import Dataset, TarDataset
 from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
 
 with importlib.resources.path("ttsdb", "data") as dp:
-    TEST_DS = TarDataset(dp / "libritts_test.tar.gz").sample(100)
+    TEST_DS = []
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_libritts_test.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_libritts_r_test.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_lj_speech.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_vctk.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_blizzard2008.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_blizzard2013.tar.gz", single_speaker=True))
+    TEST_DS.append(TarDataset(dp / "reference" / "speech_common_voice.tar.gz", single_speaker=True))
 
 class HubertTokenBenchmark(Benchmark):
     """
@@ -26,31 +33,32 @@ class HubertTokenBenchmark(Benchmark):
         hubert_layer: Union[int, str] = 7, 
         cluster_num: int = 100,
         cluster_seed: int = 42,
-        cluster_dataset: Dataset = TEST_DS,
+        cluster_datasets: List[Dataset] = TEST_DS,
     ):
         super().__init__(
             name="HubertToken",
-            category=BenchmarkCategory.OVERALL,
+            category=BenchmarkCategory.PROSODY,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="Hubert hidden states.",
             hubert_model=hubert_model,
             hubert_layer=hubert_layer,
             cluster_num=cluster_num,
             cluster_seed=cluster_seed,
-            cluster_dataset=cluster_dataset,
+            cluster_datasets=cluster_datasets,
         )
         self.processor = Wav2Vec2Processor.from_pretrained(
             "facebook/hubert-large-ls960-ft"
         )
         self.model = HubertModel.from_pretrained(hubert_model)
         self.model_layer = hubert_layer
-        self.kmeans = self.create_clusters(cluster_num, cluster_seed, cluster_dataset)
+        self.kmeans = self.create_clusters(cluster_num, cluster_seed, cluster_datasets)
 
-    def create_clusters(self, cluster_num: int, cluster_seed: int, cluster_dataset: Dataset) -> KMeans:
+    def create_clusters(self, cluster_num: int, cluster_seed: int, cluster_datasets: Dataset) -> KMeans:
         """
         Create clusters for the Hubert benchmark.
         """
-        cache_id = hash_md5(hash(self))
+        cache_id = self.__hash__()
+        print(f"cache_id: {cache_id}")
         if check_cache(cache_id):
             cluster_centres = load_cache(cache_id)
             kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed)
@@ -58,15 +66,12 @@ class HubertTokenBenchmark(Benchmark):
             kmeans.fit(dummy)
             kmeans.cluster_centers_ = cluster_centres
             return kmeans
-        wavs = [
-            wav
-            for wav, _, _ in tqdm(
-                cluster_dataset, desc=f"loading wavs for {self.name} {cluster_dataset}"
-            )
-        ]
+        wavs = []
+        for ds in tqdm(cluster_datasets, desc=f"loading wavs for {self.name}"):
+            wavs.extend([(wav, ds.sample_rate) for wav, _, _ in ds])
         embeddings = []
         for wav in tqdm(wavs):
-            embeddings.append(self.get_embedding(wav, cluster_dataset.sample_rate))
+            embeddings.append(self.get_embedding(wav[0], wav[1]))
         embeddings = np.vstack(embeddings)
         kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed).fit(embeddings)
         cache(kmeans.cluster_centers_, cache_id)

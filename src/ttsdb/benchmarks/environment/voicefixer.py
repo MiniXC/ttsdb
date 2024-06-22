@@ -22,7 +22,7 @@ class VoiceFixerBenchmark(Benchmark):
     ):
         super().__init__(
             name="VoiceFixer",
-            category=BenchmarkCategory.PHONETICS,
+            category=BenchmarkCategory.ENVIRONMENT,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="The phone counts of VoiceFixer.",
         )

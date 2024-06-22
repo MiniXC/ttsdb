@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024-present Christoph Minixhofer <christoph.minixhofer@gmail.com>
 #
 # SPDX-License-Identifier: MIT
-from typing import List
+from typing import List, Optional
 import importlib.resources
 from time import time
 from pathlib import Path
@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 from transformers import logging
 import numpy as np
+from sklearn.decomposition import PCA
 
 from ttsdb.benchmarks.environment.voicefixer import VoiceFixerBenchmark
 from ttsdb.benchmarks.environment.wada_snr import WadaSNRBenchmark
@@ -21,7 +22,9 @@ from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.prosody.hubert_token import HubertTokenBenchmark
 from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
+from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
+from ttsdb.benchmarks.benchmark import BenchmarkCategory
 from ttsdb.util.dataset import Dataset, TarDataset
 
 # we do this to avoid "some weights of the model checkpoint at ... were not used when initializing" warnings
@@ -29,7 +32,6 @@ logging.set_verbosity_error()
 
 
 benchmark_dict = {
-    "mfcc": MFCCBenchmark,
     "hubert": HubertBenchmark,
     "w2v2": Wav2Vec2WERBenchmark,
     "whisper": WhisperWERBenchmark,
@@ -37,13 +39,11 @@ benchmark_dict = {
     "pitch": PitchBenchmark,
     "wespeaker": WeSpeakerBenchmark,
     "hubert_token": HubertTokenBenchmark,
-    "allosaurus": AllosaurusBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
 }
 
 DEFAULT_BENCHMARKS = [
-    "mfcc",
     "hubert",
     "w2v2",
     "whisper",
@@ -51,7 +51,6 @@ DEFAULT_BENCHMARKS = [
     "pitch",
     "wespeaker",
     "hubert_token",
-    "allosaurus",
     "voicefixer",
     "wada_snr",
 ]
@@ -122,7 +121,7 @@ class BenchmarkSuite:
                 # empty lines for better readability
                 print("\n")
                 print(f"{'='*80}")
-                print(f"Benchmark Category: {benchmark.category.value}")
+                print(f"Benchmark Category: {benchmark.category.name}")
                 print(f"Running {benchmark.name} on {dataset.root_dir}")
                 try:
                     # check if it's in the database
@@ -168,3 +167,57 @@ class BenchmarkSuite:
                     self.database = self.database.sort_values(["benchmark_category", "benchmark_name", "score"], ascending=[True, True, False])
                     self.database.to_csv(self.write_to_file, index=False)
         return self.database
+
+    def get_aggregated_results(self) -> pd.DataFrame:
+        def concat_text(x):
+            return ", ".join(x)
+        df = self.database.copy()
+        df["benchmark_category"] = df["benchmark_category"].apply(lambda x: BenchmarkCategory(x).name)
+        df = df.groupby([
+            "benchmark_category",
+            "dataset",
+        ]).agg(
+            {
+                "score": ["mean"],
+                "ci": ["mean"],
+                "time_taken": ["mean"],
+                "noise_dataset": [concat_text],
+                "reference_dataset": [concat_text],
+                "benchmark_name": [concat_text],
+            }
+        ).reset_index()
+        # remove multiindex
+        df.columns = [x[0] for x in df.columns.ravel()]
+        # drop the benchmark_name column
+        df = df.drop("benchmark_name", axis=1)
+        # replace benchmark_category number with string
+        return df
+
+    def get_benchmark_distribution(self, benchmark_name: str, dataset_name: str, pca_components: Optional[int] = None) -> dict:
+        benchmark = [x for x in self.benchmark_objects if x.name == benchmark_name][0]
+        dataset = [x for x in self.datasets if x.name == dataset_name][0]
+        closest_noise = self.database[
+            (self.database["benchmark_name"] == benchmark_name)
+            & (self.database["dataset"] == dataset_name)
+        ]["noise_dataset"].values[0]
+        closest_noise = [x for x in self.noise_datasets if x.name == closest_noise][0]
+        other_noise = [x for x in self.noise_datasets if x.name != closest_noise.name][0]
+        closest_reference = self.database[
+            (self.database["benchmark_name"] == benchmark_name)
+            & (self.database["dataset"] == dataset_name)
+        ]["reference_dataset"].values[0]
+        closest_reference = [x for x in self.reference_datasets if x.name == closest_reference][0]
+        other_reference = [x for x in self.reference_datasets if x.name != closest_reference.name][0]
+        result = {
+            "benchmark_distribution": benchmark.get_distribution(dataset),
+            "noise_distribution": benchmark.get_distribution(closest_noise),
+            "reference_distribution": benchmark.get_distribution(closest_reference),
+            "other_noise_distribution": benchmark.get_distribution(other_noise),
+            "other_reference_distribution": benchmark.get_distribution(other_reference),
+        }
+        if pca_components is not None:
+            pca = PCA(n_components=pca_components)
+            # fit on all distributions
+            pca.fit(np.vstack(list(result.values())))
+            result = {k: pca.transform(v) for k, v in result.items()}
+        return result

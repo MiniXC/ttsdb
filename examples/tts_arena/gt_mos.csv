@@ -1,6 +1,6 @@
 dataset,score,samples
 styletts_2.tar.gz,1239,4458
-xtts_v2.tar.gz,1234,8825
+xttsv2.tar.gz,1234,8825
 metavoice.tar.gz,1185,8692
 melotts.tar.gz,1175,4090
 openvoice.tar.gz,1159,6456

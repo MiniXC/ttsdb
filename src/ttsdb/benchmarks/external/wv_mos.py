@@ -42,4 +42,4 @@ class WVMOSBenchmark(Benchmark):
                 sf.write(f.name, wav, dataset.sample_rate)
                 score = self.model.calculate_one(f.name)
             scores.append(score)
-        return scores
+        return np.array(scores)
