@@ -1,0 +1,122 @@
+benchmark_name,benchmark_category,dataset,score,ci,time_taken,noise_dataset,reference_dataset
+Hubert,1,parler.tar.gz,94.54043904768986,1.0,134.86077547073364,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Hubert,1,xtts_v2.tar.gz,94.08640625393409,1.0,119.24876189231873,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,pheme.tar.gz,93.80203670681242,1.0,124.30975937843324,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,styletts_2.tar.gz,93.4613796856062,1.0,137.10107254981995,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,metavoice.tar.gz,91.1302297044776,1.0,142.34278345108032,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,openvoice.tar.gz,91.08515661270692,1.0,113.2825219631195,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,openvoice_v2.tar.gz,89.99729699001288,1.0,109.20647478103638,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,gpt_sovits.tar.gz,89.77343177947651,1.0,467.7949769496918,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Hubert,1,whisper_speech.tar.gz,89.59650854238289,1.0,152.41745972633362,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,melotts.tar.gz,88.6954792025526,1.0,158.75398993492126,esc50.tar.gz,speech_libritts_test.tar.gz
+Hubert,1,vokan.tar.gz,88.07493484837917,1.0,125.28003406524658,esc50.tar.gz,speech_libritts_r_test.tar.gz
+HubertToken,1,openvoice.tar.gz,83.26482911974361,1.0,39.85039258003235,noise_normal_distribution.tar.gz,speech_blizzard2013.tar.gz
+HubertToken,1,styletts_2.tar.gz,79.4059641761445,1.0,50.57179236412048,noise_normal_distribution.tar.gz,speech_libritts_r_test.tar.gz
+HubertToken,1,pheme.tar.gz,78.39702319849292,1.0,38.69689393043518,noise_normal_distribution.tar.gz,speech_blizzard2013.tar.gz
+HubertToken,1,gpt_sovits.tar.gz,75.05119141240608,1.0,329.7589707374573,esc50.tar.gz,speech_blizzard2008.tar.gz
+HubertToken,1,melotts.tar.gz,74.12927742064666,1.0,47.03760647773743,noise_normal_distribution.tar.gz,speech_blizzard2013.tar.gz
+HubertToken,1,openvoice_v2.tar.gz,71.85998263225541,1.0,35.91008448600769,noise_normal_distribution.tar.gz,speech_blizzard2013.tar.gz
+HubertToken,1,metavoice.tar.gz,68.68070217656528,1.0,45.72954297065735,noise_uniform_distribution.tar.gz,speech_blizzard2013.tar.gz
+HubertToken,1,vokan.tar.gz,66.27194646527683,1.0,48.03801965713501,noise_uniform_distribution.tar.gz,speech_libritts_test.tar.gz
+HubertToken,1,xtts_v2.tar.gz,65.31532550113678,1.0,43.54483866691589,noise_normal_distribution.tar.gz,speech_libritts_test.tar.gz
+HubertToken,1,whisper_speech.tar.gz,55.348882338593214,1.0,67.96963834762573,esc50.tar.gz,speech_vctk.tar.gz
+HubertToken,1,parler.tar.gz,43.19673473077516,1.0,43.38552784919739,noise_uniform_distribution.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,styletts_2.tar.gz,96.75473727346088,1.0,19.75976204872132,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,openvoice.tar.gz,94.7426926766734,1.0,16.0106360912323,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,gpt_sovits.tar.gz,93.38121336634536,1.0,123.18405342102052,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,melotts.tar.gz,91.54034745378624,1.0,24.542885303497314,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,vokan.tar.gz,91.45090433902124,1.0,19.010381937026978,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,whisper_speech.tar.gz,87.88690139641716,1.0,22.889827728271484,esc50.tar.gz,speech_blizzard2013.tar.gz
+MFCC,1,openvoice_v2.tar.gz,85.87442066831873,1.0,14.623268127441406,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,parler.tar.gz,81.5320756589204,1.0,15.37719988822937,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,metavoice.tar.gz,75.04829113847777,1.0,23.27314734458924,esc50.tar.gz,speech_libritts_r_test.tar.gz
+MFCC,1,pheme.tar.gz,72.36573540695754,1.0,13.365115642547607,esc50.tar.gz,speech_libritts_test.tar.gz
+MFCC,1,xtts_v2.tar.gz,68.41698808164378,1.0,17.632458448410034,esc50.tar.gz,speech_libritts_r_test.tar.gz
+MPM,2,styletts_2.tar.gz,96.28148330410106,1.0,53.52254796028137,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,gpt_sovits.tar.gz,95.70386142849108,1.0,324.97739934921265,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,openvoice.tar.gz,94.65720616615896,1.0,44.38788151741028,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,openvoice_v2.tar.gz,93.15773558583058,1.0,40.7706606388092,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,parler.tar.gz,91.35469810471528,1.0,47.30156898498535,esc50.tar.gz,speech_libritts_r_test.tar.gz
+MPM,2,pheme.tar.gz,91.34017112105286,1.0,44.23947954177856,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,xtts_v2.tar.gz,91.27897077788415,1.0,46.45717906951904,esc50.tar.gz,speech_libritts_r_test.tar.gz
+MPM,2,melotts.tar.gz,88.60876781932541,1.0,8.541243553161621,esc50.tar.gz,speech_lj_speech.tar.gz
+MPM,2,vokan.tar.gz,87.96453035599842,1.0,48.21773362159729,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,whisper_speech.tar.gz,87.1192911483034,1.0,66.65999984741211,esc50.tar.gz,speech_libritts_test.tar.gz
+MPM,2,metavoice.tar.gz,84.75237978918109,1.0,51.77084040641785,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Pitch,2,metavoice.tar.gz,94.2574633061071,1.0,0.6220536231994629,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Pitch,2,openvoice.tar.gz,91.71901189782568,1.0,0.6172797679901123,noise_all_ones.tar.gz,speech_vctk.tar.gz
+Pitch,2,xtts_v2.tar.gz,90.76268957492144,1.0,0.6257412433624268,esc50.tar.gz,speech_libritts_test.tar.gz
+Pitch,2,openvoice_v2.tar.gz,90.04147746044163,1.0,0.5857334136962891,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Pitch,2,vokan.tar.gz,89.26083299959306,1.0,0.6472067832946777,noise_all_ones.tar.gz,speech_libritts_r_test.tar.gz
+Pitch,2,gpt_sovits.tar.gz,87.58920076280532,1.0,0.6367666721343994,esc50.tar.gz,speech_libritts_test.tar.gz
+Pitch,2,styletts_2.tar.gz,86.11435596493138,1.0,0.6517386436462402,noise_all_ones.tar.gz,speech_libritts_r_test.tar.gz
+Pitch,2,whisper_speech.tar.gz,85.18244981499342,1.0,0.6721069812774658,esc50.tar.gz,speech_vctk.tar.gz
+Pitch,2,parler.tar.gz,80.65108947909695,1.0,0.640021800994873,esc50.tar.gz,speech_blizzard2013.tar.gz
+Pitch,2,melotts.tar.gz,77.4670516948857,1.0,0.6113038063049316,esc50.tar.gz,speech_lj_speech.tar.gz
+Pitch,2,pheme.tar.gz,74.92151744188004,1.0,16.91354990005493,noise_all_ones.tar.gz,speech_vctk.tar.gz
+WadaSNR,3,openvoice_v2.tar.gz,90.1427416170811,1.0,0.0149788856506347,esc50.tar.gz,speech_lj_speech.tar.gz
+WadaSNR,3,melotts.tar.gz,83.06488694633873,1.0,0.015432596206665,esc50.tar.gz,speech_vctk.tar.gz
+WadaSNR,3,styletts_2.tar.gz,81.95185663662924,1.0,0.0157949924468994,esc50.tar.gz,speech_vctk.tar.gz
+WadaSNR,3,openvoice.tar.gz,81.81395640668867,1.0,0.0152864456176757,esc50.tar.gz,speech_lj_speech.tar.gz
+WadaSNR,3,whisper_speech.tar.gz,80.01509029094143,1.0,0.0156168937683105,esc50.tar.gz,speech_common_voice.tar.gz
+WadaSNR,3,gpt_sovits.tar.gz,77.73861449614353,1.0,0.0158696174621582,esc50.tar.gz,speech_lj_speech.tar.gz
+WadaSNR,3,vokan.tar.gz,76.75048509391759,1.0,0.0155651569366455,noise_all_zeros.tar.gz,speech_libritts_r_test.tar.gz
+WadaSNR,3,pheme.tar.gz,72.98537305662066,1.0,11.188059091567991,esc50.tar.gz,speech_vctk.tar.gz
+WadaSNR,3,parler.tar.gz,72.27395284764681,1.0,0.015517234802246,esc50.tar.gz,speech_blizzard2013.tar.gz
+WadaSNR,3,xtts_v2.tar.gz,69.49957801623174,1.0,0.015350341796875,esc50.tar.gz,speech_lj_speech.tar.gz
+WadaSNR,3,metavoice.tar.gz,68.71061152948903,1.0,0.0150797367095947,esc50.tar.gz,speech_common_voice.tar.gz
+WeSpeaker,4,parler.tar.gz,66.78928630888565,1.0,44.97180199623108,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,xtts_v2.tar.gz,66.16186018750884,1.0,38.7659478187561,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,metavoice.tar.gz,65.57009384799696,1.0,50.58173036575317,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,whisper_speech.tar.gz,64.68220430615044,1.0,62.8583459854126,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,styletts_2.tar.gz,64.08177214059178,1.0,47.46555924415589,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,gpt_sovits.tar.gz,62.785572287521184,1.0,61.89539313316345,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,vokan.tar.gz,61.465364390265535,1.0,43.98366737365723,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,openvoice_v2.tar.gz,60.51764733864812,1.0,40.9772002696991,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,openvoice.tar.gz,59.41556028571963,1.0,46.16965055465698,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,pheme.tar.gz,58.08476901148873,1.0,41.155823945999146,esc50.tar.gz,speech_libritts_r_test.tar.gz
+WeSpeaker,4,melotts.tar.gz,52.19876198980563,1.0,53.30524158477783,esc50.tar.gz,speech_common_voice.tar.gz
+Allosaurus,5,pheme.tar.gz,95.45927884679674,1.0,56.255868673324585,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,vokan.tar.gz,95.45776418176392,1.0,65.55197644233704,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,openvoice.tar.gz,95.41223852256827,1.0,56.64621138572693,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,gpt_sovits.tar.gz,95.3706244370006,1.0,578.265438079834,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Allosaurus,5,xtts_v2.tar.gz,95.13755416603315,1.0,59.4660530090332,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,openvoice_v2.tar.gz,95.07508464962056,1.0,52.36266374588013,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,whisper_speech.tar.gz,95.0586886765252,1.0,81.26049757003784,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,styletts_2.tar.gz,94.9617255677235,1.0,67.951904296875,esc50.tar.gz,speech_libritts_test.tar.gz
+Allosaurus,5,parler.tar.gz,94.56279830595074,1.0,60.35057878494263,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Allosaurus,5,metavoice.tar.gz,91.255929733114,1.0,64.44773721694946,esc50.tar.gz,speech_vctk.tar.gz
+Allosaurus,5,melotts.tar.gz,90.05918501424077,1.0,65.66068506240845,esc50.tar.gz,speech_vctk.tar.gz
+VoiceFixer,5,openvoice.tar.gz,94.199280732623,1.0,167.1203830242157,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,vokan.tar.gz,93.40643860036053,1.0,177.5053014755249,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,openvoice_v2.tar.gz,92.3373700440012,1.0,161.40078830718994,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,melotts.tar.gz,92.26267381773954,1.0,177.25280714035034,noise_all_ones.tar.gz,speech_libritts_r_test.tar.gz
+VoiceFixer,5,pheme.tar.gz,90.8264529300255,1.0,165.62520289421082,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,parler.tar.gz,89.22728811295433,1.0,166.8753945827484,noise_all_ones.tar.gz,speech_vctk.tar.gz
+VoiceFixer,5,xtts_v2.tar.gz,89.08521695705429,1.0,169.080584526062,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,whisper_speech.tar.gz,87.84872612609668,1.0,176.72820568084717,noise_all_ones.tar.gz,speech_blizzard2013.tar.gz
+VoiceFixer,5,styletts_2.tar.gz,87.5073639335986,1.0,179.27152299880981,noise_all_ones.tar.gz,speech_lj_speech.tar.gz
+VoiceFixer,5,metavoice.tar.gz,87.36584845538805,1.0,176.4528443813324,noise_all_ones.tar.gz,speech_lj_speech.tar.gz
+VoiceFixer,5,gpt_sovits.tar.gz,79.34130019282632,1.0,2063.956027984619,noise_all_ones.tar.gz,speech_blizzard2008.tar.gz
+Wav2Vec2 WER,6,melotts.tar.gz,91.92477112239642,1.0,39.19386553764343,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,whisper_speech.tar.gz,91.8358583317746,1.0,55.148014545440674,esc50.tar.gz,speech_libritts_test.tar.gz
+Wav2Vec2 WER,6,openvoice_v2.tar.gz,91.82381636590186,1.0,27.59932041168213,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,pheme.tar.gz,91.76435125187793,1.0,27.461391925811768,esc50.tar.gz,speech_libritts_test.tar.gz
+Wav2Vec2 WER,6,openvoice.tar.gz,91.74792259065254,1.0,30.509446382522583,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,styletts_2.tar.gz,91.70390412059122,1.0,40.56336808204651,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,vokan.tar.gz,91.6797554919133,1.0,37.422523736953735,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,gpt_sovits.tar.gz,91.63014798428844,1.0,261.985080242157,esc50.tar.gz,speech_libritts_test.tar.gz
+Wav2Vec2 WER,6,xtts_v2.tar.gz,91.56893773085064,1.0,33.83637976646423,esc50.tar.gz,speech_libritts_test.tar.gz
+Wav2Vec2 WER,6,parler.tar.gz,87.67400134592638,1.0,35.229347944259644,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Wav2Vec2 WER,6,metavoice.tar.gz,85.74901653674105,1.0,38.13618397712708,esc50.tar.gz,speech_libritts_test.tar.gz
+Whisper WER,6,whisper_speech.tar.gz,92.5253207133324,1.0,105.84138250350952,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,styletts_2.tar.gz,91.58394806946184,1.0,100.77616119384766,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,vokan.tar.gz,91.55711510054074,1.0,100.18819260597228,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,gpt_sovits.tar.gz,91.53649893647346,1.0,1002.2605230808258,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,openvoice.tar.gz,91.50754047328546,1.0,96.16983199119568,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,openvoice_v2.tar.gz,91.4652587395321,1.0,94.41691398620604,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,pheme.tar.gz,91.25851514545857,1.0,94.64414429664612,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,xtts_v2.tar.gz,91.15328114799864,1.0,100.28664040565492,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,melotts.tar.gz,90.96523614241792,1.0,103.84377360343932,esc50.tar.gz,speech_libritts_r_test.tar.gz
+Whisper WER,6,parler.tar.gz,87.24410670206542,1.0,101.70202469825745,esc50.tar.gz,speech_libritts_test.tar.gz
+Whisper WER,6,metavoice.tar.gz,85.42085870832983,1.0,99.38098335266112,esc50.tar.gz,speech_libritts_test.tar.gz

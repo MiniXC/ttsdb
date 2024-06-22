@@ -76,9 +76,6 @@ utmos_df["benchmark_name"] = "utmos"
 gt_mos_df = pd.read_csv("gt_mos.csv")
 gt_mos_df["benchmark_name"] = "gt_mos"
 # normalize the scores
-# log transform since this is an ELO rating
-gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
-gt_mos_df["score"] = np.log(gt_mos_df["score"]+1)
 gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
 
 
@@ -95,17 +92,17 @@ gt_mos_df["benchmark_type"] = "mos"
 df = pd.concat([df, wvmos_df, utmos_df, gt_mos_df])
 
 # remove parlertts and vokan
-# df = df[~df["dataset"].str.contains("vokan")]
-# gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("vokan")]
-# df = df[~df["dataset"].str.contains("style")]
-# gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("style")]
-# df = df[~df["dataset"].str.contains("xtts")]
-# gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("xtts")]
+# df = df[~df["dataset"].str.contains("gpt")]
+# gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("gpt")]
+df = df[~df["dataset"].str.contains("meta")]
+gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("meta")]
+df = df[~df["dataset"].str.contains("melo")]
+gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("melo")]
 
 # remove VoiceFixer and WadaSNR benchmarks
 df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
 df = df[~df["benchmark_name"].str.contains("WadaSNR")]
-df = df[~df["benchmark_name"].str.contains("MFCC")]
+df = df[~df["benchmark_name"].str.contains("Allosaurus")]
 
 # compute the correlations
 corrs = []
@@ -125,7 +122,6 @@ def normalize_min_max(values):
 
 # apply to all columns except dataset
 x_ds = X["dataset"]
-# X = X.drop("dataset", axis=1).apply(normalize_min_max)
 X["dataset"] = x_ds
 
 # print systems ordered by harmonic mean
@@ -145,6 +141,8 @@ y = y["score"]
 
 
 X_mean = X.apply(np.mean, axis=1)
+# min_max normalize
+X_mean = (X_mean - X_mean.min()) / (X_mean.max() - X_mean.min())
 # get correlation with harmonic mean
 print(y.shape, X_mean.shape)
 corr, p = spearmanr(y, X_mean)

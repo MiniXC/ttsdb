@@ -1,5 +1,6 @@
 import tempfile
 
+from pesq import pesq
 from voicefixer import VoiceFixer
 from simple_hifigan import Synthesiser
 import numpy as np
@@ -22,7 +23,7 @@ class VoiceFixerBenchmark(Benchmark):
         super().__init__(
             name="VoiceFixer",
             category=BenchmarkCategory.PHONETICS,
-            dimension=BenchmarkDimension.N_DIMENSIONAL,
+            dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="The phone counts of VoiceFixer.",
         )
         self.model = VoiceFixer()
@@ -46,8 +47,9 @@ class VoiceFixerBenchmark(Benchmark):
                 )
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
                 # take random 2 seconds
-                start = np.random.randint(0, len(wav) - 32000)
-                wav = wav[start : start + 32000]
+                if len(wav) > 32000:
+                    start = np.random.randint(0, len(wav) - 32000)
+                    wav = wav[start : start + 32000]
                 sf.write(f.name, wav, 16000)
                 with tempfile.NamedTemporaryFile(suffix=".wav") as f_out:
                     self.model.restore(f.name, f_out.name)
@@ -60,15 +62,19 @@ class VoiceFixerBenchmark(Benchmark):
                 mel_out = mel_out[: mel.shape[0]]
             elif mel_out.shape[0] < mel.shape[0]:
                 mel = mel[: mel_out.shape[0]]
-            mel_diff = mel - mel_out
-            # convert back to wav
-            mel_diff = self.synthesiser.mel_to_wav(mel_diff.T)
-            # save to temp.wav and raise
-            sf.write("temp.wav", mel_diff, 16000)
-            raise
+            mel_diff = mel_out
             # check if there is any nan
             if np.isnan(mel_diff).any():
+                print("nan found, skip")
                 continue
-            mel_diffs.append(mel_diff)
-        mel_diffs = np.vstack(mel_diffs)
-        return mel_diffs
+            # convert back to wav
+            mel_diff = self.synthesiser(mel_diff.T)[0]
+            mel_diff = mel_diff / np.max(np.abs(mel_diff) + 1e-5)
+            mel_diff = librosa.resample(mel_diff, orig_sr=22050, target_sr=16000)
+            # calculate the difference
+            try:
+                mel_diff = pesq(16000, wav, mel_diff, "wb")
+                mel_diffs.append(mel_diff)
+            except:
+                mel_diffs.append(0)
+        return np.array(mel_diffs)
