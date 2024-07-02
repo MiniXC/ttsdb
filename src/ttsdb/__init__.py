@@ -14,14 +14,15 @@ from sklearn.decomposition import PCA
 from ttsdb.benchmarks.environment.voicefixer import VoiceFixerBenchmark
 from ttsdb.benchmarks.environment.wada_snr import WadaSNRBenchmark
 from ttsdb.benchmarks.general.hubert import HubertBenchmark
-from ttsdb.benchmarks.general.mfcc import MFCCBenchmark
+from ttsdb.benchmarks.general.wav2vec2 import Wav2Vec2Benchmark
+from ttsdb.benchmarks.general.wavlm import WavLMBenchmark
 from ttsdb.benchmarks.intelligibility.w2v2_wer import Wav2Vec2WERBenchmark
 from ttsdb.benchmarks.intelligibility.whisper_wer import WhisperWERBenchmark
-from ttsdb.benchmarks.phonetics.allosaurus import AllosaurusBenchmark
 from ttsdb.benchmarks.prosody.mpm import MPMBenchmark
 from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.prosody.hubert_token import HubertTokenBenchmark
 from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
+from ttsdb.benchmarks.speaker.dvector import DVectorBenchmark
 from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.benchmarks.benchmark import BenchmarkCategory
@@ -33,11 +34,14 @@ logging.set_verbosity_error()
 
 benchmark_dict = {
     "hubert": HubertBenchmark,
+    "wav2vec2": Wav2Vec2Benchmark,
+    "wavlm": WavLMBenchmark,
     "w2v2": Wav2Vec2WERBenchmark,
     "whisper": WhisperWERBenchmark,
     "mpm": MPMBenchmark,
     "pitch": PitchBenchmark,
     "wespeaker": WeSpeakerBenchmark,
+    "dvector": DVectorBenchmark,
     "hubert_token": HubertTokenBenchmark,
     "voicefixer": VoiceFixerBenchmark,
     "wada_snr": WadaSNRBenchmark,
@@ -45,11 +49,14 @@ benchmark_dict = {
 
 DEFAULT_BENCHMARKS = [
     "hubert",
+    "wav2vec2",
+    "wavlm",
     "w2v2",
     "whisper",
     "mpm",
     "pitch",
     "wespeaker",
+    "dvector",
     "hubert_token",
     "voicefixer",
     "wada_snr",
@@ -126,8 +133,8 @@ class BenchmarkSuite:
                 try:
                     # check if it's in the database
                     if (
-                        self.database["benchmark_name"].str.contains(benchmark.name)
-                        & self.database["dataset"].str.contains(dataset.name)
+                        (self.database["benchmark_name"]==benchmark.name)
+                        & (self.database["dataset"]==dataset.name)
                     ).any():
                         print(f"Skipping {benchmark.name} on {dataset.name} as it's already in the database")
                         continue
@@ -217,7 +224,7 @@ class BenchmarkSuite:
         }
         if pca_components is not None:
             pca = PCA(n_components=pca_components)
-            # fit on all distributions
-            pca.fit(np.vstack(list(result.values())))
+            # fit on all except the benchmark distribution
+            pca.fit(np.vstack([v for k, v in result.items() if k != "benchmark_distribution"]))
             result = {k: pca.transform(v) for k, v in result.items()}
         return result

@@ -17,16 +17,19 @@ from ttsdb.benchmarks.external.utmos import UTMOSBenchmark
 from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.benchmarks.benchmark import Benchmark
 
-datasets = sorted(list(Path(".").rglob("*.tar.gz")))
+datasets = sorted(list(Path("data").rglob("*.tar.gz")))
 datasets = [TarDataset(x) for x in datasets]
 
 benchmarks = [
     "hubert",
+    "wav2vec2",
+    "wavlm",
     "w2v2",
     "whisper",
     "mpm",
     "pitch",
     "wespeaker",
+    "dvector",
     "hubert_token",
     "voicefixer",
     "wada_snr",
@@ -40,7 +43,6 @@ benchmark_suite = BenchmarkSuite(
 
 benchmark_suite.run()
 df = benchmark_suite.get_aggregated_results()
-print(df)
 
 datasets = sorted(datasets, key=lambda x: x.name)
 
@@ -64,30 +66,30 @@ wvmos_df["benchmark_category"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
 utmos_df["benchmark_category"] = "utmos"
 
-gt_mos_df = pd.read_csv("gt_mos.csv")
-gt_mos_df["benchmark_category"] = "gt_mos"
+gt_score_df = pd.read_csv("gt_score.csv")
+gt_score_df["benchmark_category"] = "gt_score"
 # normalize the scores
-gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
-gt_mos_df["score"] = np.log10(gt_mos_df["score"]+1)
-gt_mos_df["score"] = (gt_mos_df["score"] - gt_mos_df["score"].min()) / (gt_mos_df["score"].max() - gt_mos_df["score"].min())
+gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (gt_score_df["score"].max() - gt_score_df["score"].min())
+gt_score_df["score"] = np.log10(gt_score_df["score"]+1)
+gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (gt_score_df["score"].max() - gt_score_df["score"].min())
 
 # print systems ordered by score
-print(gt_mos_df.sort_values("score"))
+print(gt_score_df.sort_values("score"))
 
 # merge the dataframes
 df["benchmark_type"] = "ttsdb"
 wvmos_df["benchmark_type"] = "external"
 utmos_df["benchmark_type"] = "external"
-gt_mos_df["benchmark_type"] = "mos"
-df = pd.concat([df, wvmos_df, utmos_df, gt_mos_df])
+gt_score_df["benchmark_type"] = "mos"
+df = pd.concat([df, wvmos_df, utmos_df, gt_score_df])
 
 # remove meta, melo and gpt datasets (broken)
 df = df[~df["dataset"].str.contains("meta")]
-gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("meta")]
+gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("meta")]
 df = df[~df["dataset"].str.contains("melo")]
-gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("melo")]
+gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("melo")]
 df = df[~df["dataset"].str.contains("gpt")]
-gt_mos_df = gt_mos_df[~gt_mos_df["dataset"].str.contains("gpt")]
+gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("gpt")]
 
 # compute the correlations
 corrs = []
@@ -95,15 +97,8 @@ corrs = []
 # compute the correlations with statsmodels
 X = df[df["benchmark_type"] == "ttsdb"]
 X = X.pivot(index="dataset", columns="benchmark_category", values="score")
-X = X.drop("ENVIRONMENT", axis=1)
 X = X.sort_values("dataset")
 X = X.reset_index()
-
-def normalize_min_max(values):
-  min_val = values.min()
-  max_val = values.max()
-  vals = (values - min_val) / (max_val - min_val)
-  return vals
 
 # apply to all columns except dataset
 x_ds = X["dataset"]
@@ -117,7 +112,7 @@ print(X_mean.sort_values("mean"))
 
 X = X.drop("dataset", axis=1)
 
-y = df[df["benchmark_category"] == "gt_mos"]
+y = df[df["benchmark_category"] == "gt_score"]
 # remove parlertts and vokan
 y = y.sort_values("dataset")
 y = y.reset_index()
@@ -146,13 +141,13 @@ plt.savefig("scatter.png")
 
 for b in df["benchmark_category"].unique():
     bdf = df[df["benchmark_category"] == b]
-    mosdf = df[df["benchmark_category"] == "gt_mos"]
+    mosdf = df[df["benchmark_category"] == "gt_score"]
     hmean_score = X_mean
     # sort both dataframes by dataset name
     mosdf = mosdf.sort_values("dataset")
     bdf = bdf.sort_values("dataset")
     assert (mosdf["dataset"].values == bdf["dataset"].values).all()
-    if b == "gt_mos":
+    if b == "gt_score":
         continue
     bdf_score = bdf["score"]
     bdf["score"] = (bdf_score - bdf_score.min()) / (bdf_score.max() - bdf_score.min())

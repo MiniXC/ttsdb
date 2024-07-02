@@ -17,7 +17,7 @@ from ttsdb.benchmarks.benchmark import Benchmark
 
 # Extract the Blizzard 2008 dataset
 if not Path("processed_data").exists():
-    with tarfile.open("processed_data.tar.gz", "r:gz") as tar:
+    with tarfile.open("data/processed_data.tar.gz", "r:gz") as tar:
         Path("processed_data").mkdir()
         tar.extractall("processed_data")
         # rename 1-letter directories to 2-letter directories
@@ -31,15 +31,15 @@ for x in Path("processed_data").rglob("._*"):
 
 
 benchmarks = [
-    "mfcc",
     "hubert",
+    "wav2vec2",
     "w2v2",
     "whisper",
     "mpm",
     "pitch",
     "wespeaker",
+    "dvector",
     "hubert_token",
-    "allosaurus",
     "voicefixer",
     "wada_snr",
 ]
@@ -56,11 +56,11 @@ with importlib.resources.path("ttsdb", "data") as dp:
 benchmark_suite = BenchmarkSuite(
     datasets, 
     benchmarks=benchmarks,
-    write_to_file="results.csv", 
-    hubert_token={"cluster_dataset": test_ds},
+    write_to_file="results.csv",
 )
 
-df = benchmark_suite.run()
+benchmark_suite.run()
+df = benchmark_suite.get_aggregated_results()
 
 # sort datasets
 datasets = sorted(datasets, key=lambda x: x.name)
@@ -81,16 +81,16 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
     return df
 
 pesq_df = run_external_benchmark(PESQBenchmark(datasets[5]), datasets)
-pesq_df["benchmark_name"] = "pesq"
+pesq_df["benchmark_category"] = "pesq"
 wvmos_df = run_external_benchmark(WVMOSBenchmark(), datasets)
-wvmos_df["benchmark_name"] = "wvmos"
+wvmos_df["benchmark_category"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
-utmos_df["benchmark_name"] = "utmos"
+utmos_df["benchmark_category"] = "utmos"
 kaldi_df = run_external_benchmark(KaldiBenchmark(verbose=True, test_set=test_ds), datasets)
-kaldi_df["benchmark_name"] = "kaldi"
+kaldi_df["benchmark_category"] = "kaldi"
 
 gt_mos_df = pd.read_csv("gt_mos.csv")
-gt_mos_df["benchmark_name"] = "gt_mos"
+gt_mos_df["benchmark_category"] = "gt_mos"
 
 # merge the dataframes
 df["benchmark_type"] = "ttsdb"
@@ -101,16 +101,11 @@ kaldi_df["benchmark_type"] = "external"
 gt_mos_df["benchmark_type"] = "mos"
 df = pd.concat([df, pesq_df, wvmos_df, utmos_df, gt_mos_df, kaldi_df])
 
-df = df[~df["benchmark_name"].str.contains("VoiceFixer")]
-df = df[~df["benchmark_name"].str.contains("WadaSNR")]
-df = df[~df["benchmark_name"].str.contains("Allosaurus")]
-df = df[~df["benchmark_name"].str.contains("MFCC")]
-
 # compute the correlations
 corrs = []
-for b in df["benchmark_name"].unique():
-    bdf = df[df["benchmark_name"] == b]
-    mosdf = df[df["benchmark_name"] == "gt_mos"]
+for b in df["benchmark_category"].unique():
+    bdf = df[df["benchmark_category"] == b]
+    mosdf = df[df["benchmark_category"] == "gt_mos"]
     # sort both dataframes by dataset name
     mosdf = mosdf.sort_values("dataset")
     bdf = bdf.sort_values("dataset")
@@ -125,34 +120,22 @@ for b in df["benchmark_name"].unique():
 
 # compute the correlations with statsmodels
 X = df[df["benchmark_type"] == "ttsdb"]
-X = X.pivot(index="dataset", columns="benchmark_name", values="score")
-X["WER"] = (X["Wav2Vec2 WER"] + X["Whisper WER"]) / 2
-X = X.drop(["Wav2Vec2 WER", "Whisper WER"], axis=1)
-X["Prosody"] = (X["Pitch"] + X["MPM"] + X["HubertToken"]) / 3
-X = X.drop(["Pitch", "MPM", "HubertToken"], axis=1)
+X = X.pivot(index="dataset", columns="benchmark_category", values="score")
+X = X.drop("SPEAKER", axis=1)
 X = X.sort_values("dataset")
 # remove index
 X = X.reset_index()
-# remove "Kaldi" columns
+X_mean = X
+X_mean["mean"] = X_mean.drop("dataset", axis=1).apply(np.mean, axis=1)
+print(X_mean.sort_values("mean"))
 X = X.drop("dataset", axis=1)
 
-def normalize_min_max(values):
-  min_val = values.min()
-  max_val = values.max()
-  vals = (values - min_val) / (max_val - min_val)
-  return vals
-
-# X = X.apply(normalize_min_max, axis=0)
-
-y = df[df["benchmark_name"] == "gt_mos"]
+y = df[df["benchmark_category"] == "gt_mos"]
 y = y.sort_values("dataset")
 y = y.reset_index()
 y = y["score"]
 
-from scipy.stats import hmean
-
-X_mean = X.apply(hmean, axis=1)
-# get correlation with harmonic mean
+X_mean = X.apply(np.mean, axis=1)
 corr, p = spearmanr(y, X_mean)
 
 print(f"mean: {corr:.3f} ({p:.3f})")

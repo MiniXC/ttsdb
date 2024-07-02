@@ -20,8 +20,9 @@ class WeSpeakerBenchmark(Benchmark):
 
     def __init__(
         self,
-        window_duration: float = 2.0,
+        window_duration: float = 1.0,
         window_step: float = 0.5,
+        measure_std: bool = False,
     ):
         super().__init__(
             name="WeSpeaker",
@@ -30,9 +31,11 @@ class WeSpeakerBenchmark(Benchmark):
             description="The speaker embeddings using WeSpeaker.",
             window_duration=window_duration,
             window_step=window_step,
+            measure_std=measure_std,
         )
         self.model = Model.from_pretrained("pyannote/wespeaker-voxceleb-resnet34-LM")
         self.inference = Inference(self.model, window="sliding", duration=window_duration, step=window_step)
+        self.measure_std = measure_std
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
@@ -54,6 +57,10 @@ class WeSpeakerBenchmark(Benchmark):
                 sf.write(f.name, wav, 16000)
                 embedding = self.inference(f.name)
                 embedding = [x[1] for x in embedding]
-            embeddings.extend(embedding)
+            if self.measure_std:
+                embedding = np.std(embedding, axis=0)
+                embeddings.append(embedding)
+            else:
+                embeddings.extend(embedding)
         embeddings = np.vstack(embeddings)
         return embeddings
