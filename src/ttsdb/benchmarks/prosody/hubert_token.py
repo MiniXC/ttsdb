@@ -7,20 +7,21 @@ from transformers import Wav2Vec2Processor, HubertModel
 from tqdm import tqdm
 import librosa
 from sklearn.cluster import KMeans
+import requests
 
 from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDimension
 from ttsdb.util.dataset import Dataset, TarDataset
-from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
+from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5, CACHE_DIR
 
-with importlib.resources.path("ttsdb", "data") as dp:
-    TEST_DS = []
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_libritts_test.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_libritts_r_test.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_lj_speech.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_vctk.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_blizzard2008.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_blizzard2013.tar.gz", single_speaker=True))
-    TEST_DS.append(TarDataset(dp / "reference" / "speech_common_voice.tar.gz", single_speaker=True))
+TEST_DS_URL = "https://www.openslr.org/resources/60/test-clean.tar.gz"
+# download to cache
+TEST_DS_PATH = CACHE_DIR / "test-clean.tar.gz"
+if not TEST_DS_PATH.exists():
+    print(f"downloading {TEST_DS_URL} to {TEST_DS_PATH} for HubertTokenBenchmark")
+    with open(TEST_DS_PATH, "wb") as f:
+        f.write(requests.get(TEST_DS_URL).content)
+
+TEST_DS = [TarDataset(TEST_DS_PATH).sample(1000)]
 
 class HubertTokenBenchmark(Benchmark):
     """

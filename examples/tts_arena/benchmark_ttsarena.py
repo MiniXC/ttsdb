@@ -14,7 +14,6 @@ from ttsdb.util.dataset import DirectoryDataset, TarDataset
 from ttsdb.benchmarks.external.pesq import PESQBenchmark
 from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.external.utmos import UTMOSBenchmark
-from ttsdb.benchmarks.trainability.kaldi import KaldiBenchmark
 from ttsdb.benchmarks.benchmark import Benchmark
 
 datasets = sorted(list(Path("data").rglob("*.tar.gz")))
@@ -47,7 +46,7 @@ df = benchmark_suite.get_aggregated_results()
 datasets = sorted(datasets, key=lambda x: x.name)
 
 def run_external_benchmark(benchmark: Benchmark, datasets: list):
-    if Path(f"{benchmark.name.lower()}.csv").exists():
+    if Path(f"csv/{benchmark.name.lower()}.csv").exists():
         return pd.read_csv(f"{benchmark.name.lower()}.csv")
     df = pd.DataFrame()
     names = []
@@ -58,7 +57,7 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
         scores.append(score)
     df["dataset"] = names
     df["score"] = scores
-    df.to_csv(f"{benchmark.name.lower()}.csv", index=False)
+    df.to_csv(f"csv/{benchmark.name.lower()}.csv", index=False)
     return df
 
 wvmos_df = run_external_benchmark(WVMOSBenchmark(), datasets)
@@ -66,7 +65,7 @@ wvmos_df["benchmark_category"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
 utmos_df["benchmark_category"] = "utmos"
 
-gt_score_df = pd.read_csv("gt_score.csv")
+gt_score_df = pd.read_csv("csv/gt_score.csv")
 gt_score_df["benchmark_category"] = "gt_score"
 # normalize the scores
 gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (gt_score_df["score"].max() - gt_score_df["score"].min())
@@ -157,7 +156,3 @@ for b in df["benchmark_category"].unique():
     # get correlation with harmonic mean
     hmean_corr, hmean_p = spearmanr(bdf["score"], hmean_score)
     # print(f"{b} harmonic mean: {hmean_corr:.3f} ({hmean_p:.3f})")
-
-# save the correlations
-corrs_df = pd.DataFrame(corrs, columns=["benchmark", "corr", "p"])
-corrs_df.to_csv("correlations.csv", index=False)

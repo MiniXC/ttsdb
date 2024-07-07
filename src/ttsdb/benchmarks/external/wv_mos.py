@@ -18,23 +18,23 @@ class WVMOSBenchmark(Benchmark):
         self,
     ):
         super().__init__(
-            name="WV-MOS",
+            name="WVMOS",
             category=BenchmarkCategory.EXTERNAL,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
-            description="The WV-MOS benchmark.",
+            description="The WVMOS benchmark.",
         )
         self.model = get_wvmos()
 
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
-        Get the distribution of the WV-MOS benchmark.
+        Get the distribution of the WVMOS benchmark.
 
         Args:
             dataset (DirectoryDataset): The dataset to get the distribution from.
 
         Returns:
-            np.ndarray: The distribution of the WV-MOS benchmark.
+            np.ndarray: The distribution of the WVMOS benchmark.
         """
         scores = []
         for wav, txt, _ in tqdm(dataset, desc=f"computing scores for {self.name}"):

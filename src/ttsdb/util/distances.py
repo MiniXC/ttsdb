@@ -26,16 +26,17 @@ def wasserstein_distance(x, y):
         means.append(jnp.mean((jnp.sort(x) - jnp.sort(y)) ** 2) ** 0.5)
     return np.mean(means)
 
-
 def frechet_distance(x, y, eps=1e-6):
-    """
-    From: https://github.com/gudgud96/frechet-audio-distance/blob/main/frechet_audio_distance/fad.py
-    """
-
-    mu1 = jnp.mean(x, axis=0)
-    mu2 = jnp.mean(y, axis=0)
-    sigma1 = jnp.cov(x, rowvar=False)
-    sigma2 = jnp.cov(y, rowvar=False)
+    if isinstance(x, tuple):
+        mu1, sigma1 = x
+    else:
+        mu1 = jnp.mean(x, axis=0)
+        sigma1 = jnp.cov(x, rowvar=False)
+    if isinstance(y, tuple):
+        mu2, sigma2 = y
+    else:
+        mu2 = jnp.mean(y, axis=0)
+        sigma2 = jnp.cov(y, rowvar=False)
 
     mu1 = jnp.atleast_1d(mu1)
     mu2 = jnp.atleast_1d(mu2)

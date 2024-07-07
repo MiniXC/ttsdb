@@ -21,7 +21,7 @@ class Dataset(ABC):
     Abstract class for a dataset.
     """
 
-    def __init__(self, name, sample_rate: int = 22050, single_speaker: bool = False):
+    def __init__(self, name, sample_rate: int = 22050):
         self.sample_rate = sample_rate
         self.wavs = []
         self.texts = []
@@ -32,7 +32,6 @@ class Dataset(ABC):
         }
         self.name = name
         self.indices = None
-        self.single_speaker = single_speaker
 
     @abstractmethod
     def __len__(self) -> int:
@@ -45,7 +44,7 @@ class Dataset(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str, str]:
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         """
         Get a sample from the dataset.
 
@@ -53,7 +52,7 @@ class Dataset(ABC):
             idx (int): The index of the sample.
 
         Returns:
-            Tuple[Path, Path, str]: A tuple containing the wav file, text file, and speaker name.
+            Tuple[Path, Path, str]: A tuple containing the wav file and text file.
         """
         raise NotImplementedError
 
@@ -81,23 +80,18 @@ class DirectoryDataset(Dataset):
     Each file starts with {speaker_name}_.
     """
 
-    def __init__(self, root_dir: str = None, sample_rate: int = 22050, single_speaker: bool = False):
-        super().__init__(Path(root_dir).name, sample_rate, single_speaker)
+    def __init__(self, root_dir: str = None, sample_rate: int = 22050):
+        super().__init__(Path(root_dir).name, sample_rate)
         if root_dir is None:
             raise ValueError("root_dir must be provided.")
         self.root_dir = Path(root_dir)
         # we assume that the root directory contains
         # subdirectories for each speaker
-        speakers, wavs, texts = [], [], []
+        wavs, texts = [], []
         for wav_file in Path(root_dir).rglob("*.wav"):
-            if not single_speaker:
-                speakers.append(wav_file.name.split("_")[0])
-            else:
-                speakers.append("single_speaker")
             wavs.append(wav_file)
             text = wav_file.with_suffix(".txt")
             texts.append(text)
-        self.speakers = speakers
         self.wavs = wavs
         self.texts = texts
 
@@ -106,7 +100,7 @@ class DirectoryDataset(Dataset):
             return len(self.indices)
         return len(self.wavs)
 
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str, str]:
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         if self.indices is not None:
             idx = self.indices[idx]
         wav, sr = self.wavs[idx], self.sample_rate
@@ -123,7 +117,7 @@ class DirectoryDataset(Dataset):
             print(f"Empty audio file: {wav}, padding with zeros.")
             audio = np.zeros(16000)
         audio = audio / (np.max(np.abs(audio)) + 1e-6)
-        return audio, text, self.speakers[idx]
+        return audio, text
 
     def __hash__(self) -> int:
         h = hashlib.md5()
@@ -131,7 +125,7 @@ class DirectoryDataset(Dataset):
         h.update(str(self.root_dir).encode())
         h.update(str(self.sample_params["n"]).encode())
         h.update(str(self.sample_params["seed"]).encode())
-        h.update(str(self.single_speaker).encode())
+        h.update(str(True).encode())
         return int(h.hexdigest(), 16)
 
     def __repr__(self) -> str:
@@ -145,31 +139,20 @@ class TarDataset(Dataset):
     Each file starts with {speaker_name}_.
     """
 
-    def __init__(self, root_tar: str = None, sample_rate: int = 22050, single_speaker: bool = False):
-        super().__init__(Path(root_tar).name, sample_rate, single_speaker)
+    def __init__(self, root_tar: str = None, sample_rate: int = 22050):
+        super().__init__(Path(root_tar).name, sample_rate)
         if root_tar is None:
             raise ValueError("root_tar must be provided.")
         self.root_tar = root_tar
         self.root_dir = Path(root_tar).name
         self.tar = tarfile.open(root_tar)
-        # we assume that the root directory contains
-        # subdirectories for each speaker
-        speakers, wavs, texts = [], [], []
+        wavs, texts = [], []
         for member in self.tar.getmembers():
             if member.name.endswith(".wav"):
-                if not single_speaker:
-                    if "/" in member.name:
-                        speaker_member = member.name.split("/")[-1]
-                    else:
-                        speaker_member = member.name
-                    speakers.append(speaker_member.split("_")[0])
-                else:
-                    speakers.append("single-speaker")
                 wav_file = Path(member.name)
                 wavs.append(wav_file)
                 text_file = Path(member.name).with_suffix(".txt")
                 texts.append(text_file)
-        self.speakers = speakers
         self.wavs = wavs
         self.texts = texts
 
@@ -178,7 +161,7 @@ class TarDataset(Dataset):
             return len(self.indices)
         return len(self.wavs)
 
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str, str]:
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         if self.indices is not None:
             idx = self.indices[idx]
         wav, sr = self.wavs[idx], self.sample_rate
@@ -207,7 +190,7 @@ class TarDataset(Dataset):
         h.update(str(self.root_tar).encode())
         h.update(str(self.sample_params["n"]).encode())
         h.update(str(self.sample_params["seed"]).encode())
-        h.update(str(self.single_speaker).encode())
+        h.update(str(True).encode())
         return int(h.hexdigest(), 16)
 
     def __repr__(self) -> str:
