@@ -80,11 +80,15 @@ class Benchmark(ABC):
             mu = load_cache(cache_name + "_mu")
             sig = load_cache(cache_name + "_sig")
             return (mu, sig)
-        if isinstance(dataset, DataDistribution):
+        if isinstance(dataset, DataDistribution) and self.dimension == BenchmarkDimension.N_DIMENSIONAL:
             mu, sig = dataset.get_distribution(self.key)
             cache(mu, cache_name + "_mu")
             cache(sig, cache_name + "_sig")
             return (mu, sig)
+        elif isinstance(dataset, DataDistribution) and self.dimension == BenchmarkDimension.ONE_DIMENSIONAL:
+            distribution = dataset.get_distribution(self.key)
+            cache(distribution, cache_name)
+            return distribution
         distribution = self._get_distribution(dataset)
         cache(distribution, cache_name)
         return distribution

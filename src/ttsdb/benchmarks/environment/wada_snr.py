@@ -194,7 +194,7 @@ class WadaSNRBenchmark(Benchmark):
         step_size: int = 1,
     ):
         super().__init__(
-            name="WadaSNR",
+            name="Wada SNR",
             category=BenchmarkCategory.ENVIRONMENT,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="The Signal-to-Noise Ratio (SNR) of Wada SNR.",

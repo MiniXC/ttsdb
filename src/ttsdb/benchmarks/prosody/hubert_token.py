@@ -42,7 +42,7 @@ class HubertTokenBenchmark(Benchmark):
         cluster_datasets: List[Dataset] = TEST_DS,
     ):
         super().__init__(
-            name="HubertToken",
+            name="Hubert Token",
             category=BenchmarkCategory.PROSODY,
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="Hubert hidden states.",
