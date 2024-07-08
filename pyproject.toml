@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
   "alignments @ git+https://github.com/MiniXC/alignments.git@alignments_v1",
   "allosaurus>=0.1.0",
-  "fairseq>=0.10.2",
+  "fairseq",
   "hydra-core>=1.1.0",
   "jiwer>=2.2.0",
   "kalpy-kaldi==0.5.9",
