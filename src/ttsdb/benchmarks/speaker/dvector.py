@@ -20,7 +20,6 @@ from ttsdb.benchmarks.benchmark import Benchmark, BenchmarkCategory, BenchmarkDi
 from ttsdb.util.dataset import Dataset
 
 
-
 class Wav2Mel(nn.Module):
     """Transform audio file into mel spectrogram tensors."""
 
@@ -55,6 +54,7 @@ class Wav2Mel(nn.Module):
         mel_tensor = self.log_melspectrogram(wav_tensor)
         return mel_tensor
 
+
 class SoxEffects(nn.Module):
     """Transform waveform tensors."""
 
@@ -70,15 +70,6 @@ class SoxEffects(nn.Module):
             ["channels", "1"],  # convert to mono
             ["rate", f"{sample_rate}"],  # resample
             ["norm", f"{norm_db}"],  # normalize to -3 dB
-            # [
-            #     "silence",
-            #     "1",
-            #     f"{sil_duration}",
-            #     f"{sil_threshold}%",
-            #     "-1",
-            #     f"{sil_duration}",
-            #     f"{sil_threshold}%",
-            # ],  # remove silence throughout the file
         ]
 
     def forward(self, wav_tensor: torch.Tensor, sample_rate: int) -> torch.Tensor:
@@ -109,6 +100,7 @@ class LogMelspectrogram(nn.Module):
     def forward(self, wav_tensor: torch.Tensor) -> torch.Tensor:
         mel_tensor = self.melspectrogram(wav_tensor).squeeze(0).T  # (time, n_mels)
         return torch.log(torch.clamp(mel_tensor, min=1e-9))
+
 
 class DVectorBenchmark(Benchmark):
     """
@@ -147,12 +139,12 @@ class DVectorBenchmark(Benchmark):
             np.ndarray: The distribution of the DVector benchmark.
         """
         embeddings = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing embeddings for {self.name}"):
+        for wav, _ in tqdm(dataset, desc=f"computing embeddings for {self.name}"):
             window_length = int(self.window_duration * dataset.sample_rate)
             hop_length = int(self.window_step * dataset.sample_rate)
             utt_embeddings = []
             for i in range(0, len(wav), hop_length):
-                wav_part = wav[i:i + window_length]
+                wav_part = wav[i : i + window_length]
                 if len(wav_part) > window_length // 2:
                     wav_tensor = torch.tensor(wav_part).float().unsqueeze(0)
                     mel_tensor = self.wav2mel(wav_tensor, dataset.sample_rate)

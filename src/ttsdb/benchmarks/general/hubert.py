@@ -18,7 +18,7 @@ class HubertBenchmark(Benchmark):
     def __init__(
         self,
         hubert_model: str = "facebook/hubert-base-ls960",
-        hubert_layer: Union[int, str] = 7, 
+        hubert_layer: Union[int, str] = 7,
     ):
         super().__init__(
             name="Hubert",
@@ -75,9 +75,7 @@ class HubertBenchmark(Benchmark):
         """
         wavs = [
             wav
-            for wav, _, _ in tqdm(
-                dataset, desc=f"loading wavs for {self.name} {dataset}"
-            )
+            for wav, _ in tqdm(dataset, desc=f"loading wavs for {self.name} {dataset}")
         ]
         embeddings = []
         for wav in tqdm(wavs):

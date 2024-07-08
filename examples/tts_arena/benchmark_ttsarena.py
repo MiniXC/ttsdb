@@ -35,7 +35,7 @@ benchmarks = [
 ]
 
 benchmark_suite = BenchmarkSuite(
-    datasets, 
+    datasets,
     benchmarks=benchmarks,
     write_to_file="results.csv",
 )
@@ -44,6 +44,7 @@ benchmark_suite.run()
 df = benchmark_suite.get_aggregated_results()
 
 datasets = sorted(datasets, key=lambda x: x.name)
+
 
 def run_external_benchmark(benchmark: Benchmark, datasets: list):
     if Path(f"csv/{benchmark.name.lower()}.csv").exists():
@@ -60,6 +61,7 @@ def run_external_benchmark(benchmark: Benchmark, datasets: list):
     df.to_csv(f"csv/{benchmark.name.lower()}.csv", index=False)
     return df
 
+
 wvmos_df = run_external_benchmark(WVMOSBenchmark(), datasets)
 wvmos_df["benchmark_category"] = "wvmos"
 utmos_df = run_external_benchmark(UTMOSBenchmark(), datasets)
@@ -68,9 +70,13 @@ utmos_df["benchmark_category"] = "utmos"
 gt_score_df = pd.read_csv("csv/gt_score.csv")
 gt_score_df["benchmark_category"] = "gt_score"
 # normalize the scores
-gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (gt_score_df["score"].max() - gt_score_df["score"].min())
-gt_score_df["score"] = np.log10(gt_score_df["score"]+1)
-gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (gt_score_df["score"].max() - gt_score_df["score"].min())
+gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (
+    gt_score_df["score"].max() - gt_score_df["score"].min()
+)
+gt_score_df["score"] = np.log10(gt_score_df["score"] + 1)
+gt_score_df["score"] = (gt_score_df["score"] - gt_score_df["score"].min()) / (
+    gt_score_df["score"].max() - gt_score_df["score"].min()
+)
 
 # print systems ordered by score
 print(gt_score_df.sort_values("score"))
@@ -116,7 +122,6 @@ y = df[df["benchmark_category"] == "gt_score"]
 y = y.sort_values("dataset")
 y = y.reset_index()
 y = y["score"]
-
 
 
 X_mean = X.apply(np.mean, axis=1)

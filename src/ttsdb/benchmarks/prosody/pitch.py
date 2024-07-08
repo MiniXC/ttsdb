@@ -33,7 +33,7 @@ class PitchBenchmark(Benchmark):
             np.ndarray: The distribution of the pitch benchmark.
         """
         pitches = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing pitches for {self.name}"):
+        for wav, _ in tqdm(dataset, desc=f"computing pitches for {self.name}"):
             pitch = self.pitch_measure(wav, np.array([1000]))["measure"]
             pitches.append(pitch)
         pitches = np.concatenate(pitches)

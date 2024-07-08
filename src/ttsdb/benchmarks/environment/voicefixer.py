@@ -40,7 +40,7 @@ class VoiceFixerBenchmark(Benchmark):
             float: The Word Error Rate (WER) distribution of the VoiceFixer model.
         """
         mel_diffs = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing noise for {self.name}"):
+        for wav, _ in tqdm(dataset, desc=f"computing noise for {self.name}"):
             if dataset.sample_rate != 16000:
                 wav = librosa.resample(
                     wav, orig_sr=dataset.sample_rate, target_sr=16000

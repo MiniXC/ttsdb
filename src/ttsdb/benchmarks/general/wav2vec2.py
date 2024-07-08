@@ -18,7 +18,7 @@ class Wav2Vec2Benchmark(Benchmark):
     def __init__(
         self,
         wav2vec2_model: str = "facebook/wav2vec2-base",
-        wav2vec2_layer: Union[int, str] = 8, 
+        wav2vec2_layer: Union[int, str] = 8,
     ):
         super().__init__(
             name="Wav2Vec2",
@@ -75,9 +75,7 @@ class Wav2Vec2Benchmark(Benchmark):
         """
         wavs = [
             wav
-            for wav, _, _ in tqdm(
-                dataset, desc=f"loading wavs for {self.name} {dataset}"
-            )
+            for wav, _ in tqdm(dataset, desc=f"loading wavs for {self.name} {dataset}")
         ]
         embeddings = []
         for wav in tqdm(wavs):

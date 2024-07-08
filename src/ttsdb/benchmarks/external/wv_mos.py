@@ -1,4 +1,3 @@
-
 from tqdm import tqdm
 from wvmos import get_wvmos
 import tempfile
@@ -25,7 +24,6 @@ class WVMOSBenchmark(Benchmark):
         )
         self.model = get_wvmos()
 
-
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
         Get the distribution of the WVMOS benchmark.
@@ -37,7 +35,7 @@ class WVMOSBenchmark(Benchmark):
             np.ndarray: The distribution of the WVMOS benchmark.
         """
         scores = []
-        for wav, txt, _ in tqdm(dataset, desc=f"computing scores for {self.name}"):
+        for wav, txt in tqdm(dataset, desc=f"computing scores for {self.name}"):
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
                 sf.write(f.name, wav, dataset.sample_rate)
                 score = self.model.calculate_one(f.name)

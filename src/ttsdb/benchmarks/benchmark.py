@@ -7,13 +7,13 @@ from enum import Enum
 import hashlib
 import importlib.resources
 import json
-from typing import List
+from typing import List, Union
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 
-from ttsdb.util.dataset import Dataset
+from ttsdb.util.dataset import Dataset, DataDistribution
 from ttsdb.util.cache import cache, load_cache, check_cache, hash_md5
 from ttsdb.util.distances import wasserstein_distance, frechet_distance
 
@@ -56,12 +56,13 @@ class Benchmark(ABC):
         **kwargs,
     ):
         self.name = name
+        self.key = name.lower().replace(" ", "_")
         self.category = category
         self.dimension = dimension
         self.description = description
         self.kwargs = kwargs
 
-    def get_distribution(self, dataset: Dataset) -> np.ndarray:
+    def get_distribution(self, dataset: Union[Dataset, DataDistribution]) -> np.ndarray:
         """
         Abstract method to get the distribution of the benchmark.
         If the benchmark is one-dimensional, the method should return a
@@ -75,6 +76,15 @@ class Benchmark(ABC):
         cache_name = f"benchmarks/{self.name}/{ds_hash}_{benchmark_hash}"
         if check_cache(cache_name):
             return load_cache(cache_name)
+        if check_cache(cache_name + "_mu") and check_cache(cache_name + "_sig"):
+            mu = load_cache(cache_name + "_mu")
+            sig = load_cache(cache_name + "_sig")
+            return (mu, sig)
+        if isinstance(dataset, DataDistribution):
+            mu, sig = dataset.get_distribution(self.key)
+            cache(mu, cache_name + "_mu")
+            cache(sig, cache_name + "_sig")
+            return (mu, sig)
         distribution = self._get_distribution(dataset)
         cache(distribution, cache_name)
         return distribution
@@ -107,7 +117,11 @@ class Benchmark(ABC):
         return int(h.hexdigest(), 16)
 
     @lru_cache(maxsize=None)
-    def compute_distance(self, one_dataset: Dataset, other_dataset: Dataset) -> float:
+    def compute_distance(
+        self,
+        one_dataset: Union[Dataset, DataDistribution],
+        other_dataset: Union[Dataset, DataDistribution],
+    ) -> float:
         """
         Compute the distance between the distributions of the benchmark in two datasets.
         """
@@ -145,11 +159,20 @@ class Benchmark(ABC):
         closest_dataset_idx = np.argmin(dataset_scores)
 
         print(f"Closest noise dataset: {noise_datasets[closest_noise_idx].name}")
-        print(f"Closest reference dataset: {reference_datasets[closest_dataset_idx].name}")
+        print(
+            f"Closest reference dataset: {reference_datasets[closest_dataset_idx].name}"
+        )
 
         noise_score = np.min(noise_scores)
         dataset_score = np.min(dataset_scores)
         combined_score = dataset_score + noise_score
         score = (noise_score / combined_score) * 100
         # TODO: compute confidence interval
-        return score, 1.0, (noise_datasets[closest_noise_idx].name, reference_datasets[closest_dataset_idx].name)
+        return (
+            score,
+            1.0,
+            (
+                noise_datasets[closest_noise_idx].name,
+                reference_datasets[closest_dataset_idx].name,
+            ),
+        )

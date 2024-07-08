@@ -1,0 +1,3 @@
+benchmark_name,benchmark_category,dataset,score,ci,time_taken,noise_dataset,reference_dataset
+Hubert,1,openvoice.tar.gz,91.08515658074279,1.0,62.45856785774231,noise_esc50,reference_speech_libritts_test
+Hubert,1,openvoice_v2.tar.gz,89.997296870775,1.0,119.05289673805237,noise_esc50,reference_speech_libritts_test

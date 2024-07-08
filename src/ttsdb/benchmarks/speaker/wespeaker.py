@@ -34,7 +34,9 @@ class WeSpeakerBenchmark(Benchmark):
             measure_std=measure_std,
         )
         self.model = Model.from_pretrained("pyannote/wespeaker-voxceleb-resnet34-LM")
-        self.inference = Inference(self.model, window="sliding", duration=window_duration, step=window_step)
+        self.inference = Inference(
+            self.model, window="sliding", duration=window_duration, step=window_step
+        )
         self.measure_std = measure_std
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
@@ -48,7 +50,7 @@ class WeSpeakerBenchmark(Benchmark):
             np.ndarray: The distribution of the WeSpeaker benchmark.
         """
         embeddings = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing embeddings for {self.name}"):
+        for wav, _ in tqdm(dataset, desc=f"computing embeddings for {self.name}"):
             if dataset.sample_rate != 16000:
                 wav = librosa.resample(
                     wav, orig_sr=dataset.sample_rate, target_sr=16000

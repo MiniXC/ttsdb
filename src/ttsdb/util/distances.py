@@ -2,6 +2,7 @@
 This module contains functions to calculate distribution distances.
 """
 import numpy as np
+
 try:
     import jax.numpy as jnp
 except ImportError:
@@ -25,6 +26,7 @@ def wasserstein_distance(x, y):
                 y = y[np.random.choice(y.shape[0], x.shape[0], replace=False)]
         means.append(jnp.mean((jnp.sort(x) - jnp.sort(y)) ** 2) ** 0.5)
     return np.mean(means)
+
 
 def frechet_distance(x, y, eps=1e-6):
     if isinstance(x, tuple):

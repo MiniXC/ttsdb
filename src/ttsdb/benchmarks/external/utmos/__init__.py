@@ -22,6 +22,7 @@ if not CHECKPOINT_PATH.exists():
     with open(CHECKPOINT_PATH, "wb") as f:
         f.write(response.content)
 
+
 class UTMOSBenchmark(Benchmark):
     """
     Benchmark class for the UTMOS benchmark.
@@ -36,10 +37,11 @@ class UTMOSBenchmark(Benchmark):
             dimension=BenchmarkDimension.ONE_DIMENSIONAL,
             description="The UTMOS benchmark.",
         )
-        self.model = lightning_module.BaselineLightningModule.load_from_checkpoint(CHECKPOINT_PATH)
+        self.model = lightning_module.BaselineLightningModule.load_from_checkpoint(
+            CHECKPOINT_PATH
+        )
         self.model.eval()
         self.model = self.model.to("cpu")
-
 
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
@@ -52,14 +54,14 @@ class UTMOSBenchmark(Benchmark):
             np.ndarray: The distribution of the UTMOS benchmark.
         """
         scores = []
-        for wav, _, _ in tqdm(dataset, desc=f"computing scores for {self.name}"):
+        for wav, _ in tqdm(dataset, desc=f"computing scores for {self.name}"):
             # batch = torch.tensor(wav).unsqueeze(0).repeat(10, 1, 1)
             csr = ChangeSampleRate(dataset.sample_rate, 16000)
             out_wavs = csr(torch.tensor(wav).unsqueeze(0))
             batch = {
-                'wav': out_wavs,
-                'domains': torch.tensor([0]),
-                'judge_id': torch.tensor([288])
+                "wav": out_wavs,
+                "domains": torch.tensor([0]),
+                "judge_id": torch.tensor([288]),
             }
             with torch.no_grad():
                 output = self.model(batch)

@@ -26,7 +26,6 @@ class PESQBenchmark(Benchmark):
         self.reference_dataset = reference_dataset
         self.sample_rate = sample_rate
 
-
     def _get_distribution(self, dataset: Dataset) -> np.ndarray:
         """
         Get the distribution of the Hubert benchmark.
@@ -46,7 +45,8 @@ class PESQBenchmark(Benchmark):
         wavs_ref = [
             (wav, txt)
             for wav, txt, _ in tqdm(
-                self.reference_dataset, desc=f"loading wavs for {self.name} {self.reference_dataset}"
+                self.reference_dataset,
+                desc=f"loading wavs for {self.name} {self.reference_dataset}",
             )
         ]
         embeddings = []
@@ -57,7 +57,9 @@ class PESQBenchmark(Benchmark):
             if sr != self.sample_rate:
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sample_rate)
             if sr_ref != self.sample_rate:
-                wav_ref = librosa.resample(wav_ref, orig_sr=sr_ref, target_sr=self.sample_rate)
+                wav_ref = librosa.resample(
+                    wav_ref, orig_sr=sr_ref, target_sr=self.sample_rate
+                )
             if txt != txt_ref:
                 raise ValueError(f"Text mismatch between {txt} and {txt_ref}")
             score = pesq(self.sample_rate, wav_ref, wav, "wb")

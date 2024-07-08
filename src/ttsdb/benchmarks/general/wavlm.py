@@ -18,7 +18,7 @@ class WavLMBenchmark(Benchmark):
     def __init__(
         self,
         wavlm_model: str = "microsoft/wavlm-base-plus",
-        wavlm_layer: Union[int, str] = 11, 
+        wavlm_layer: Union[int, str] = 11,
     ):
         super().__init__(
             name="WavLM",
@@ -75,9 +75,7 @@ class WavLMBenchmark(Benchmark):
         """
         wavs = [
             wav
-            for wav, _, _ in tqdm(
-                dataset, desc=f"loading wavs for {self.name} {dataset}"
-            )
+            for wav, _ in tqdm(dataset, desc=f"loading wavs for {self.name} {dataset}")
         ]
         embeddings = []
         for wav in tqdm(wavs):

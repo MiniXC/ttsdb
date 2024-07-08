@@ -21,7 +21,12 @@ if not TEST_DS_PATH.exists():
     with open(TEST_DS_PATH, "wb") as f:
         f.write(requests.get(TEST_DS_URL).content)
 
-TEST_DS = [TarDataset(TEST_DS_PATH).sample(1000)]
+TEST_DS = [
+    TarDataset(TEST_DS_PATH, text_suffix=".normalized.txt", path_prefix="./").sample(
+        100
+    )
+]
+
 
 class HubertTokenBenchmark(Benchmark):
     """
@@ -31,7 +36,7 @@ class HubertTokenBenchmark(Benchmark):
     def __init__(
         self,
         hubert_model: str = "facebook/hubert-base-ls960",
-        hubert_layer: Union[int, str] = 7, 
+        hubert_layer: Union[int, str] = 7,
         cluster_num: int = 100,
         cluster_seed: int = 42,
         cluster_datasets: List[Dataset] = TEST_DS,
@@ -54,12 +59,13 @@ class HubertTokenBenchmark(Benchmark):
         self.model_layer = hubert_layer
         self.kmeans = self.create_clusters(cluster_num, cluster_seed, cluster_datasets)
 
-    def create_clusters(self, cluster_num: int, cluster_seed: int, cluster_datasets: Dataset) -> KMeans:
+    def create_clusters(
+        self, cluster_num: int, cluster_seed: int, cluster_datasets: Dataset
+    ) -> KMeans:
         """
         Create clusters for the Hubert benchmark.
         """
         cache_id = self.__hash__()
-        print(f"cache_id: {cache_id}")
         if check_cache(cache_id):
             cluster_centres = load_cache(cache_id)
             kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed)
@@ -69,12 +75,20 @@ class HubertTokenBenchmark(Benchmark):
             return kmeans
         wavs = []
         for ds in tqdm(cluster_datasets, desc=f"loading wavs for {self.name}"):
-            wavs.extend([(wav, ds.sample_rate) for wav, _, _ in ds])
+            wavs.extend(
+                [
+                    (wav, ds.sample_rate)
+                    for wav, _ in tqdm(ds, desc=f"loading wavs for {self.name} {ds}")
+                ]
+            )
         embeddings = []
+        print(len(wavs))
         for wav in tqdm(wavs):
             embeddings.append(self.get_embedding(wav[0], wav[1]))
         embeddings = np.vstack(embeddings)
-        kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed).fit(embeddings)
+        kmeans = KMeans(n_clusters=cluster_num, random_state=cluster_seed).fit(
+            embeddings
+        )
         cache(kmeans.cluster_centers_, cache_id)
         return kmeans
 
@@ -111,9 +125,7 @@ class HubertTokenBenchmark(Benchmark):
         """
         wavs = [
             wav
-            for wav, _, _ in tqdm(
-                dataset, desc=f"loading wavs for {self.name} {dataset}"
-            )
+            for wav, _ in tqdm(dataset, desc=f"loading wavs for {self.name} {dataset}")
         ]
         lengths = []
         for wav in tqdm(wavs):
@@ -122,7 +134,7 @@ class HubertTokenBenchmark(Benchmark):
             # the lengths are the number of times each cluster is repeated in a row
             current_length = 1
             for i in range(1, len(cluster)):
-                if cluster[i] == cluster[i-1]:
+                if cluster[i] == cluster[i - 1]:
                     current_length += 1
                 else:
                     lengths.append(current_length)
