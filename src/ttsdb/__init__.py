@@ -227,11 +227,11 @@ class BenchmarkSuite:
                     self.database.to_csv(self.write_to_file, index=False)
         return self.database
 
-    def get_aggregated_results(self) -> pd.DataFrame:
+    @staticmethod
+    def aggreate_df(df: pd.DataFrame) -> pd.DataFrame:
         def concat_text(x):
             return ", ".join(x)
 
-        df = self.database.copy()
         df["benchmark_category"] = df["benchmark_category"].apply(
             lambda x: BenchmarkCategory(x).name
         )
@@ -260,6 +260,10 @@ class BenchmarkSuite:
         df = df.drop("benchmark_name", axis=1)
         # replace benchmark_category number with string
         return df
+
+    def get_aggregated_results(self) -> pd.DataFrame:
+        df = self.database.copy()
+        return BenchmarkSuite.aggreate_df(df)
 
     def get_benchmark_distribution(
         self,
