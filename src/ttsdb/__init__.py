@@ -228,7 +228,7 @@ class BenchmarkSuite:
         return self.database
 
     @staticmethod
-    def aggreate_df(df: pd.DataFrame) -> pd.DataFrame:
+    def aggregate_df(df: pd.DataFrame) -> pd.DataFrame:
         def concat_text(x):
             return ", ".join(x)
 
@@ -263,7 +263,7 @@ class BenchmarkSuite:
 
     def get_aggregated_results(self) -> pd.DataFrame:
         df = self.database.copy()
-        return BenchmarkSuite.aggreate_df(df)
+        return BenchmarkSuite.aggregate_df(df)
 
     def get_benchmark_distribution(
         self,
