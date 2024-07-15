@@ -187,7 +187,11 @@ class TarDataset(Dataset):
         else:
             text_f = str(self.texts[idx])
         text_file = self.tar.extractfile(text_f)
-        text = text_file.read().decode("utf-8")
+        try:
+            text = text_file.read().decode("utf-8")
+        except UnicodeDecodeError:
+            text = ""
+            print(f"Error reading text file: {text_f}")
         if audio.shape[0] == 0:
             print(f"Empty audio file: {wav}, padding with zeros.")
             audio = np.zeros(16000)
@@ -252,7 +256,7 @@ class DataDistribution:
             print(f"Running {benchmark} on {self.dataset.root_dir}")
             bench = self.benchmark_objects[benchmark]
             dist = bench.get_distribution(self.dataset)
-            if bench.dimension == BenchmarkDimension.N_DIMENSIONAL:
+            if bench.dimension.name == "N_DIMENSIONAL":
                 # compute mu and sigma and store as tuple
                 mu = np.mean(dist, axis=0)
                 sigma = np.cov(dist, rowvar=False)

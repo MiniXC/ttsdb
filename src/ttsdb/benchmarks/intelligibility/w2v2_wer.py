@@ -56,7 +56,7 @@ class Wav2Vec2WERBenchmark(Benchmark):
             pred_transcript = self.processor.batch_decode(predicted_ids)[0]
             pred_transcript = re.sub(r"[^\w\s]", "", pred_transcript)
             gt_transcript = re.sub(r"[^\w\s]", "", gt_transcript)
-            pred_transcript = re.sub(r"\s+", " ", pred_transcript)
-            gt_transcript = re.sub(r"\s+", " ", gt_transcript)
+            pred_transcript = re.sub(r"\s+", " ", pred_transcript).lower()
+            gt_transcript = re.sub(r"\s+", " ", gt_transcript).lower()
             wers.append(wer(gt_transcript, pred_transcript))
         return np.array(wers)

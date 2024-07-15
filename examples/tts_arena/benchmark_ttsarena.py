@@ -48,7 +48,7 @@ datasets = sorted(datasets, key=lambda x: x.name)
 
 def run_external_benchmark(benchmark: Benchmark, datasets: list):
     if Path(f"csv/{benchmark.name.lower()}.csv").exists():
-        return pd.read_csv(f"{benchmark.name.lower()}.csv")
+        return pd.read_csv(f"csv/{benchmark.name.lower()}.csv")
     df = pd.DataFrame()
     names = []
     scores = []
@@ -88,14 +88,6 @@ utmos_df["benchmark_type"] = "external"
 gt_score_df["benchmark_type"] = "mos"
 df = pd.concat([df, wvmos_df, utmos_df, gt_score_df])
 
-# remove meta, melo and gpt datasets (broken)
-df = df[~df["dataset"].str.contains("meta")]
-gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("meta")]
-df = df[~df["dataset"].str.contains("melo")]
-gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("melo")]
-df = df[~df["dataset"].str.contains("gpt")]
-gt_score_df = gt_score_df[~gt_score_df["dataset"].str.contains("gpt")]
-
 # compute the correlations
 corrs = []
 
@@ -127,21 +119,11 @@ y = y["score"]
 X_mean = X.apply(np.mean, axis=1)
 # min_max normalize
 X_mean = (X_mean - X_mean.min()) / (X_mean.max() - X_mean.min())
-# get correlation with harmonic mean
+# get correlation with mean
 print(y.shape, X_mean.shape)
 corr, p = spearmanr(y, X_mean)
-# print systems ordered by harmonic mean
+# print systems ordered by mean
 print(f"mean: {corr:.3f} ({p:.3f})")
-
-from matplotlib import pyplot as plt
-import seaborn as sns
-
-# plot the scatter plot
-plt.figure(figsize=(10, 10))
-sns.scatterplot(x=y, y=X_mean)
-plt.xlabel("Ground truth elo")
-plt.ylabel("Harmonic mean of benchmark scores")
-plt.savefig("scatter.png")
 
 for b in df["benchmark_category"].unique():
     bdf = df[df["benchmark_category"] == b]
@@ -158,6 +140,6 @@ for b in df["benchmark_category"].unique():
     corr, p = spearmanr(mosdf["score"], bdf["score"])
     corrs.append((b, corr, p))
     print(f"{b}: {corr:.3f} ({p:.3f})")
-    # get correlation with harmonic mean
+    # get correlation with mean
     hmean_corr, hmean_p = spearmanr(bdf["score"], hmean_score)
-    # print(f"{b} harmonic mean: {hmean_corr:.3f} ({hmean_p:.3f})")
+    # print(f"{b} mean: {hmean_corr:.3f} ({hmean_p:.3f})")

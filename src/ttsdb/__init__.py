@@ -22,7 +22,6 @@ from ttsdb.benchmarks.prosody.pitch import PitchBenchmark
 from ttsdb.benchmarks.prosody.hubert_token import HubertTokenBenchmark
 from ttsdb.benchmarks.speaker.wespeaker import WeSpeakerBenchmark
 from ttsdb.benchmarks.speaker.dvector import DVectorBenchmark
-from ttsdb.benchmarks.external.wv_mos import WVMOSBenchmark
 from ttsdb.benchmarks.benchmark import BenchmarkCategory, BenchmarkDimension
 from ttsdb.util.dataset import Dataset, TarDataset, DataDistribution, DEFAULT_BENCHMARKS
 
@@ -31,21 +30,48 @@ logging.set_verbosity_error()
 
 
 benchmark_dict = {
-    "hubert": HubertBenchmark(),
-    "wav2vec2": Wav2Vec2Benchmark(),
-    "wavlm": WavLMBenchmark(),
-    "wav2vec2_wer": Wav2Vec2WERBenchmark(),
-    "whisper_wer": WhisperWERBenchmark(),
-    "mpm": MPMBenchmark(),
-    "pitch": PitchBenchmark(),
-    "wespeaker": WeSpeakerBenchmark(),
-    "dvector": DVectorBenchmark(),
-    "hubert_token": HubertTokenBenchmark(),
-    "voicefixer": VoiceFixerBenchmark(),
-    "wada_snr": WadaSNRBenchmark(),
+    "hubert": HubertBenchmark,
+    "wav2vec2": Wav2Vec2Benchmark,
+    "wavlm": WavLMBenchmark,
+    "wav2vec2_wer": Wav2Vec2WERBenchmark,
+    "whisper_wer": WhisperWERBenchmark,
+    "mpm": MPMBenchmark,
+    "pitch": PitchBenchmark,
+    "wespeaker": WeSpeakerBenchmark,
+    "dvector": DVectorBenchmark,
+    "hubert_token": HubertTokenBenchmark,
+    "voicefixer": VoiceFixerBenchmark,
+    "wada_snr": WadaSNRBenchmark,
 }
 
 with importlib.resources.path("ttsdb", "data") as data_path:
+    # check if the reference and noise distributions are already saved
+    if not Path(f"{data_path}/reference_speech_blizzard2008.pkl.gz").exists():
+        print("Creating reference distributions")
+        ref_benchmark_dict = {
+            k: v() for k, v in benchmark_dict.items()
+        }
+        REFERENCE_DISTS = [
+            DataDistribution(
+                TarDataset(data_path / "original" / f"speech_{name}.tar.gz"),
+                ref_benchmark_dict,
+                benchmarks=DEFAULT_BENCHMARKS,
+                name=f"speech_{name}",
+            )
+            for name in [
+                "blizzard2008",
+                "blizzard2013",
+                "common_voice",
+                "libritts_test",
+                "libritts_r_test",
+                "lj_speech",
+                "vctk",
+            ]
+        ]
+        # save the reference distributions
+        for dist in REFERENCE_DISTS:
+            dist.to_pickle(f"{data_path}/reference_{dist.name}.pkl.gz")
+
     REFERENCE_DISTS = [
         DataDistribution.from_pickle(f"{data_path}/reference_{name}.pkl.gz")
         for name in [
@@ -59,14 +85,38 @@ with importlib.resources.path("ttsdb", "data") as data_path:
         ]
     ]
 
+    if not Path(f"{data_path}/noise_esc50.pkl.gz").exists():
+        print("Creating noise distributions")
+        ref_benchmark_dict = {
+            k: v() for k, v in benchmark_dict.items()
+        }
+        NOISE_DISTS = [
+            DataDistribution(
+                TarDataset(data_path / "original" / f"noise_{name}.tar.gz"),
+                ref_benchmark_dict,
+                benchmarks=DEFAULT_BENCHMARKS,
+                name=name,
+            )
+            for name in [
+                "esc50",
+                "all_ones",
+                "all_zeros",
+                "normal_distribution",
+                "uniform_distribution",
+            ]
+        ]
+        # save the noise distributions
+        for dist in NOISE_DISTS:
+            dist.to_pickle(f"{data_path}/noise_{dist.name}.pkl.gz")
+
     NOISE_DISTS = [
         DataDistribution.from_pickle(f"{data_path}/noise_{name}.pkl.gz")
         for name in [
             "esc50",
-            "noise_all_ones",
-            "noise_all_zeros",
-            "noise_normal_distribution",
-            "noise_uniform_distribution",
+            "all_ones",
+            "all_zeros",
+            "normal_distribution",
+            "uniform_distribution",
         ]
     ]
 
@@ -83,7 +133,7 @@ class BenchmarkSuite:
         write_to_file: str = None,
     ):
         self.benchmarks = benchmarks
-        self.benchmark_objects = [benchmark_dict[benchmark] for benchmark in benchmarks]
+        self.benchmark_objects = [benchmark_dict[benchmark]() for benchmark in benchmarks]
         # sort by category and then by name
         self.benchmark_objects = sorted(
             self.benchmark_objects, key=lambda x: (x.category.value, x.name)
@@ -130,6 +180,14 @@ class BenchmarkSuite:
                         )
                         continue
                     start = time()
+                    if "WER".lower() in benchmark.name.lower():
+                        print([
+                            x.get_distribution(benchmark.key) for x in self.reference_distributions
+                        ])
+                        print([
+                            x.get_distribution(benchmark.key) for x in self.noise_distributions
+                        ])
+                        print(benchmark.get_distribution(dataset))
                     score = benchmark.compute_score(
                         dataset, self.reference_distributions, self.noise_distributions
                     )

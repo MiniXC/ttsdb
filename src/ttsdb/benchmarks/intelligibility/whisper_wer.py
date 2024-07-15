@@ -56,5 +56,8 @@ class WhisperWERBenchmark(Benchmark):
             gt_transcript = re.sub(r"\s+", " ", gt_transcript)
             pred_transcript = pred_transcript.strip().lower()
             gt_transcript = gt_transcript.strip().lower()
-            wers.append(wer(gt_transcript, pred_transcript))
+            if len(gt_transcript) == 0:
+                wers.append(1.0)
+            else:
+                wers.append(wer(gt_transcript, pred_transcript))
         return np.array(wers)

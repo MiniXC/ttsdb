@@ -45,7 +45,7 @@ MPM,2,vokan.tar.gz,87.96453035599842,1.0,49.08404159545898,noise_esc50,reference
 MPM,2,whisper_speech.tar.gz,87.1192911483034,1.0,63.58557319641113,noise_esc50,reference_speech_libritts_test
 MPM,2,voicecraft2.tar.gz,78.21044491906775,1.0,54.14320349693298,noise_esc50,reference_speech_lj_speech
 Pitch,2,openvoice.tar.gz,91.71901189782568,1.0,18.13708996772766,noise_noise_all_ones,reference_speech_vctk
-Pitch,2,xttsv2.tar.gz,90.76268957492144,1.0,19.801121473312374,noise_esc50,reference_speech_libritts_test
+Pitch,2,xttsv2.tar.gz,90.76268957492144,1.0,19.80112147331237,noise_esc50,reference_speech_libritts_test
 Pitch,2,openvoice_v2.tar.gz,90.04147746044163,1.0,16.07070231437683,noise_esc50,reference_speech_libritts_r_test
 Pitch,2,vokan.tar.gz,89.26083299959306,1.0,22.239927768707275,noise_noise_all_ones,reference_speech_libritts_r_test
 Pitch,2,styletts_2.tar.gz,86.11435596493138,1.0,23.94259238243103,noise_noise_all_ones,reference_speech_libritts_r_test
@@ -62,13 +62,13 @@ VoiceFixer,3,xttsv2.tar.gz,89.08521695705429,1.0,170.33265447616577,noise_noise_
 VoiceFixer,3,whisper_speech.tar.gz,87.84872612609668,1.0,178.3019859790802,noise_noise_all_ones,reference_speech_blizzard2013
 VoiceFixer,3,styletts_2.tar.gz,87.5073639335986,1.0,176.34673738479614,noise_noise_all_ones,reference_speech_lj_speech
 VoiceFixer,3,voicecraft2.tar.gz,66.34615348641842,1.0,180.95762538909912,noise_noise_all_ones,reference_speech_libritts_test
-Wada SNR,3,openvoice_v2.tar.gz,90.1427416170811,1.0,10.900976181030273,noise_esc50,reference_speech_lj_speech
+Wada SNR,3,openvoice_v2.tar.gz,90.1427416170811,1.0,10.900976181030272,noise_esc50,reference_speech_lj_speech
 Wada SNR,3,styletts_2.tar.gz,81.95185663662924,1.0,17.79907989501953,noise_esc50,reference_speech_vctk
 Wada SNR,3,openvoice.tar.gz,81.81395640668867,1.0,13.08122992515564,noise_esc50,reference_speech_lj_speech
 Wada SNR,3,whisper_speech.tar.gz,80.01509029094143,1.0,23.027897596359253,noise_esc50,reference_speech_common_voice
 Wada SNR,3,vokan.tar.gz,76.75048509391759,1.0,16.736793279647827,noise_noise_all_zeros,reference_speech_libritts_r_test
-Wada SNR,3,pheme.tar.gz,72.98537305662066,1.0,11.035139560699463,noise_esc50,reference_speech_vctk
-Wada SNR,3,parler.tar.gz,72.27395284764681,1.0,12.901191711425781,noise_esc50,reference_speech_blizzard2013
+Wada SNR,3,pheme.tar.gz,72.98537305662066,1.0,11.035139560699465,noise_esc50,reference_speech_vctk
+Wada SNR,3,parler.tar.gz,72.27395284764681,1.0,12.90119171142578,noise_esc50,reference_speech_blizzard2013
 Wada SNR,3,xttsv2.tar.gz,69.49957801623174,1.0,14.548080682754517,noise_esc50,reference_speech_lj_speech
 Wada SNR,3,voicecraft2.tar.gz,61.12791144502604,1.0,21.89738178253174,noise_noise_all_zeros,reference_speech_libritts_r_test
 DVector,4,xttsv2.tar.gz,71.560259547529,1.0,26.41282844543457,noise_esc50,reference_speech_libritts_test
@@ -79,13 +79,31 @@ DVector,4,openvoice.tar.gz,69.51257200674672,1.0,24.23476529121399,noise_esc50,r
 DVector,4,vokan.tar.gz,69.35518739527738,1.0,29.14098620414734,noise_esc50,reference_speech_libritts_test
 DVector,4,openvoice_v2.tar.gz,68.35390860117379,1.0,21.824361085891724,noise_esc50,reference_speech_libritts_test
 DVector,4,pheme.tar.gz,64.10471139795597,1.0,22.660944938659668,noise_esc50,reference_speech_libritts_test
-DVector,4,voicecraft2.tar.gz,48.501154539361345,1.0,34.438050746917725,noise_esc50,reference_speech_vctk
+DVector,4,voicecraft2.tar.gz,48.50115453936135,1.0,34.438050746917725,noise_esc50,reference_speech_vctk
 WeSpeaker,4,parler.tar.gz,76.88813257452003,1.0,27.994462490081787,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,whisper_speech.tar.gz,73.60735344777885,1.0,45.16290283203125,noise_esc50,reference_speech_libritts_r_test
-WeSpeaker,4,xttsv2.tar.gz,73.5673215767236,1.0,30.170146465301514,noise_esc50,reference_speech_libritts_r_test
+WeSpeaker,4,xttsv2.tar.gz,73.5673215767236,1.0,30.17014646530152,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,styletts_2.tar.gz,72.38187066883906,1.0,32.920727491378784,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,openvoice_v2.tar.gz,68.9849951710889,1.0,30.21518111228943,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,vokan.tar.gz,68.78934301671737,1.0,33.98707461357117,noise_esc50,reference_speech_libritts_r_test
-WeSpeaker,4,pheme.tar.gz,68.12802163002668,1.0,25.291950941085815,noise_esc50,reference_speech_libritts_r_test
+WeSpeaker,4,pheme.tar.gz,68.12802163002668,1.0,25.29195094108581,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,openvoice.tar.gz,68.09089793516841,1.0,33.77435088157654,noise_esc50,reference_speech_libritts_r_test
 WeSpeaker,4,voicecraft2.tar.gz,58.64719162027049,1.0,39.34559106826782,noise_esc50,reference_speech_libritts_r_test
+Wav2Vec2 WER,6,openvoice_v2.tar.gz,98.12402858119475,1.0,25.35945439338684,noise_all_ones,reference_speech_lj_speech
+Wav2Vec2 WER,6,openvoice.tar.gz,98.10245105201965,1.0,31.218631505966187,noise_all_ones,reference_speech_lj_speech
+Wav2Vec2 WER,6,pheme.tar.gz,96.43797599716206,1.0,25.918951272964478,noise_all_ones,reference_speech_lj_speech
+Wav2Vec2 WER,6,voicecraft2.tar.gz,96.1995778330764,1.0,40.95238471031189,noise_all_ones,reference_speech_blizzard2013
+Wav2Vec2 WER,6,styletts_2.tar.gz,96.10618219265731,1.0,36.6831214427948,noise_all_ones,reference_speech_blizzard2013
+Wav2Vec2 WER,6,xttsv2.tar.gz,94.21111148710615,1.0,31.38028883934021,noise_all_ones,reference_speech_lj_speech
+Wav2Vec2 WER,6,vokan.tar.gz,93.78060002781454,1.0,34.56924915313721,noise_all_ones,reference_speech_lj_speech
+Wav2Vec2 WER,6,parler.tar.gz,92.87270271546396,1.0,32.12077188491821,noise_all_ones,reference_speech_vctk
+Wav2Vec2 WER,6,whisper_speech.tar.gz,91.17590960462115,1.0,47.73212695121765,noise_all_ones,reference_speech_vctk
+Whisper WER,6,styletts_2.tar.gz,98.38480781758865,1.0,101.16044330596924,noise_all_ones,reference_speech_lj_speech
+Whisper WER,6,voicecraft2.tar.gz,98.10316057112597,1.0,105.02966475486755,noise_all_ones,reference_speech_lj_speech
+Whisper WER,6,vokan.tar.gz,97.32023294270492,1.0,100.31066942214966,noise_all_ones,reference_speech_lj_speech
+Whisper WER,6,xttsv2.tar.gz,95.1560639884558,1.0,100.43997597694397,noise_all_ones,reference_speech_lj_speech
+Whisper WER,6,openvoice_v2.tar.gz,94.65618187108738,1.0,94.49474310874939,noise_all_ones,reference_speech_lj_speech
+Whisper WER,6,whisper_speech.tar.gz,94.50534935596615,1.0,106.15523386001587,noise_all_ones,reference_speech_common_voice
+Whisper WER,6,openvoice.tar.gz,93.35170970367761,1.0,97.47275042533875,noise_all_ones,reference_speech_vctk
+Whisper WER,6,parler.tar.gz,92.49510156479842,1.0,102.08325743675232,noise_all_ones,reference_speech_common_voice
+Whisper WER,6,pheme.tar.gz,91.03411860950621,1.0,96.20897006988525,noise_all_ones,reference_speech_lj_speech
